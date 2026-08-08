@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<!--
+  ============================================================================
+  SETUP GUIDE — Palio di Siena dashboard
+  ============================================================================
+  The same instructions as README.md, as a web page. Self-contained: no
+  external fonts, scripts or images, so it opens straight from disk or from
+  the published site.
+  ============================================================================
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Palio Dashboard — Setup Guide</title>
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32">
+<style>
+:root{
+  --bg:#12100e; --panel:#1c1916; --panel-2:#241f1b; --line:#3a322b;
+  --text:#f0e9e0; --muted:#a2968a; --accent:#c8763c; --accent-2:#e0a94f;
+  --good:#7fa66a; --info:#4aa3df;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--bg);color:var(--text);line-height:1.65;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  font-size:15px;
+}
+.wrap{max-width:800px;margin:0 auto;padding:40px 22px 80px}
+
+/* ---- Masthead ---- */
+header{display:flex;align-items:center;gap:18px;margin-bottom:8px}
+header img{width:60px;height:60px;border-radius:14px;flex-shrink:0}
+h1{margin:0;font-size:29px;letter-spacing:-.5px}
+h1 span{color:var(--accent)}
+.sub{color:var(--muted);font-size:14px;margin:4px 0 0}
+.lede{color:var(--muted);font-size:14.5px;margin:22px 0 0;padding-bottom:26px;border-bottom:1px solid var(--line)}
+
+/* ---- Contents ---- */
+nav.toc{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 20px;margin:26px 0 34px}
+nav.toc h2{margin:0 0 10px;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+nav.toc ol{margin:0;padding-left:20px}
+nav.toc li{margin:5px 0}
+nav.toc a{color:var(--accent-2);text-decoration:none}
+nav.toc a:hover{text-decoration:underline;text-underline-offset:3px}
+
+/* ---- Sections ---- */
+h2{font-size:21px;margin:44px 0 6px;letter-spacing:-.2px;scroll-margin-top:20px}
+h2 .num{color:var(--accent);font-variant-numeric:tabular-nums;margin-right:8px}
+h3{font-size:15.5px;margin:26px 0 6px;color:var(--accent-2)}
+p{margin:12px 0}
+a{color:var(--accent-2)}
+
+/* ---- Step lists ---- */
+ol.steps{counter-reset:s;list-style:none;padding:0;margin:16px 0}
+ol.steps>li{
+  counter-increment:s;position:relative;padding:0 0 0 40px;margin:0 0 16px;
+}
+ol.steps>li::before{
+  content:counter(s);position:absolute;left:0;top:0;width:26px;height:26px;
+  border-radius:50%;background:var(--panel-2);border:1px solid var(--accent);
+  color:var(--accent-2);font-size:12.5px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+}
+ul{margin:12px 0;padding-left:22px}
+li{margin:6px 0}
+
+/* ---- Callouts ---- */
+.note,.warn,.tip{
+  border-radius:10px;padding:14px 18px;margin:20px 0;font-size:14px;line-height:1.6;
+  border:1px solid var(--line);background:var(--panel);
+}
+.note{border-left:3px solid var(--info)}
+.warn{border-left:3px solid var(--accent);background:rgba(200,118,60,.07)}
+.tip{border-left:3px solid var(--good)}
+.note b,.warn b,.tip b{display:block;margin-bottom:4px;font-size:12px;
+  text-transform:uppercase;letter-spacing:.9px}
+.note b{color:var(--info)} .warn b{color:var(--accent-2)} .tip b{color:var(--good)}
+.note p:last-child,.warn p:last-child,.tip p:last-child{margin-bottom:0}
+.note p:first-of-type,.warn p:first-of-type,.tip p:first-of-type{margin-top:0}
+
+/* ---- Code, keys, buttons ---- */
+code{
+  background:var(--panel-2);border:1px solid var(--line);border-radius:5px;
+  padding:1.5px 6px;font-size:13px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--accent-2);
+}
+pre{
+  background:var(--panel-2);border:1px solid var(--line);border-radius:9px;
+  padding:14px 16px;overflow-x:auto;margin:14px 0;
+}
+pre code{background:none;border:none;padding:0;color:var(--text);font-size:13px}
+kbd{
+  background:var(--panel-2);border:1px solid var(--line);border-bottom-width:2px;
+  border-radius:5px;padding:1px 7px;font-size:12.5px;font-family:inherit;color:var(--text);
+}
+.btn{
+  display:inline-block;background:var(--panel-2);border:1px solid var(--accent);
+  color:var(--accent-2);border-radius:5px;padding:1px 8px;font-size:13px;font-weight:600;
+}
+
+/* ---- Table ---- */
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13.5px}
+th{
+  text-align:left;padding:9px 12px;color:var(--muted);font-size:11px;
+  text-transform:uppercase;letter-spacing:.7px;border-bottom:1px solid var(--line);
+}
+td{padding:9px 12px;border-bottom:1px solid rgba(58,50,43,.55);vertical-align:top}
+tbody tr:hover{background:var(--panel-2)}
+td code{white-space:nowrap}
+
+footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--line);
+  font-size:12.5px;color:var(--muted)}
+@media(max-width:560px){
+  .wrap{padding:26px 16px 60px} h1{font-size:23px} header img{width:46px;height:46px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <img src="icons/icon-192.png" alt="">
+    <div>
+      <h1>Palio di <span>Siena</span> — Setup Guide</h1>
+      <p class="sub">Publishing the dashboard as an installable app</p>
+    </div>
+  </header>
+
+  <p class="lede">
+    An installable web app covering the Palio di Siena: every contrada, jockey, horse and
+    drappellone from 1633 to today, plus the field for the next race. Data comes from
+    <a href="https://www.ilpalio.org/" target="_blank" rel="noopener">ilpalio.org</a>, the
+    non-profit archive curated by Orlando Papei and authorised by the Consorzio per la
+    Tutela del Palio di Siena. This is an unofficial personal project.
+  </p>
+
+  <nav class="toc">
+    <h2>What's here</h2>
+    <ol>
+      <li><a href="#files">What's in this folder</a></li>
+      <li><a href="#publish">Putting it on GitHub Pages</a></li>
+      <li><a href="#install">Installing it on a device</a></li>
+      <li><a href="#update">Updating it later</a></li>
+      <li><a href="#offline">What works offline</a></li>
+    </ol>
+  </nav>
+
+  <!-- ===================================================== -->
+  <h2 id="files"><span class="num">1</span>What's in this folder</h2>
+
+  <table>
+    <thead><tr><th>File</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>index.html</code></td>
+          <td>The whole dashboard — data, styling and behaviour in one file</td></tr>
+      <tr><td><code>manifest.webmanifest</code></td>
+          <td>Tells the browser the app's name, colours and icons so it can be installed</td></tr>
+      <tr><td><code>sw.js</code></td>
+          <td>Service worker: makes the app open offline and remembers banners you've viewed</td></tr>
+      <tr><td><code>icons/</code></td>
+          <td>App icons for the home screen</td></tr>
+      <tr><td><code>readme.html</code></td>
+          <td>This guide</td></tr>
+      <tr><td><code>.nojekyll</code></td>
+          <td>Stops GitHub trying to process the site as a blog. Leave it there</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ===================================================== -->
+  <h2 id="publish"><span class="num">2</span>Putting it on GitHub Pages</h2>
+  <p>You'll do this once. Afterwards, updating is just replacing <code>index.html</code>.
+     Allow about ten minutes.</p>
+
+  <h3>Create the repository</h3>
+  <ol class="steps">
+    <li>Go to <a href="https://github.com/new" target="_blank" rel="noopener">github.com/new</a>
+        (sign in first).</li>
+    <li><strong>Repository name:</strong> <code>palio</code> — or anything you like; it
+        becomes part of the web address.</li>
+    <li>Set it to <strong>Public</strong>. GitHub Pages needs public on a free account.</li>
+    <li>Leave every checkbox unticked — no README, no .gitignore. This folder already has
+        what it needs.</li>
+    <li>Click <span class="btn">Create repository</span>.</li>
+  </ol>
+
+  <h3>Upload the files</h3>
+  <ol class="steps">
+    <li>On the empty repository page, click <strong>uploading an existing file</strong>.</li>
+    <li>Open this <code>palio-pwa</code> folder on your Mac and drag <strong>everything
+        inside it</strong> onto the browser window — <code>index.html</code>,
+        <code>manifest.webmanifest</code>, <code>sw.js</code>, <code>readme.html</code>,
+        and the <code>icons</code> folder.</li>
+    <li>Scroll down and click <span class="btn">Commit changes</span>.</li>
+  </ol>
+
+  <div class="warn">
+    <b>Drag the contents, not the folder</b>
+    <p><code>index.html</code> must sit at the top level of the repository. If it ends up
+    inside a <code>palio-pwa</code> sub-folder, the site address won't find it.</p>
+  </div>
+
+  <div class="note">
+    <b>The hidden file</b>
+    <p><code>.nojekyll</code> starts with a dot, so Finder hides it. Press
+    <kbd>⌘</kbd> <kbd>Shift</kbd> <kbd>.</kbd> in Finder to show hidden files, drag it
+    across too, then press the same keys again to re-hide them.</p>
+  </div>
+
+  <h3>Turn on Pages</h3>
+  <ol class="steps">
+    <li>In the repository, click <span class="btn">Settings</span> (top right).</li>
+    <li>In the left sidebar, click <strong>Pages</strong>.</li>
+    <li>Under <strong>Source</strong>, choose <strong>Deploy from a branch</strong>.</li>
+    <li>Set the branch to <strong>main</strong> and the folder to <strong>/ (root)</strong>,
+        then click <span class="btn">Save</span>.</li>
+    <li>Wait a minute or two and refresh. GitHub shows the address at the top:
+        <pre><code>https://YOUR-USERNAME.github.io/palio/</code></pre>
+        Replace <code>YOUR-USERNAME</code> with your GitHub username. That's your app.</li>
+  </ol>
+
+  <div class="note">
+    <b>Why GitHub and not just the file on your Mac?</b>
+    <p>Service workers — the thing that makes an app installable and able to run offline —
+    only work over <code>https</code>. Opening the <code>.html</code> from your hard drive
+    skips that part. Everything else still works; you just don't get the install button.</p>
+  </div>
+
+  <!-- ===================================================== -->
+  <h2 id="install"><span class="num">3</span>Installing it on a device</h2>
+
+  <h3>iPhone or iPad</h3>
+  <p>Open the address in <strong>Safari</strong> — on iOS only Safari can install web apps.
+     Tap <strong>Share</strong>, scroll down, tap <strong>Add to Home Screen</strong>. It
+     gets an icon and opens without browser chrome, like any other app.</p>
+
+  <h3>Mac — Chrome or Edge</h3>
+  <p>Open the address, then click the small install icon at the right of the address bar, or
+     use <strong>⋮</strong> → <strong>Cast, save and share</strong> →
+     <strong>Install page as app</strong>.</p>
+
+  <h3>Android</h3>
+  <p>Chrome usually offers "Add to home screen" by itself. If not:
+     <strong>⋮</strong> → <strong>Add to Home screen</strong>.</p>
+
+  <!-- ===================================================== -->
+  <h2 id="update"><span class="num">4</span>Updating it later</h2>
+  <p>When the dashboard is rebuilt after a new Palio:</p>
+
+  <h3>The easy way — double-click <code>publish.command</code></h3>
+
+  <p>There's a <code>publish.command</code> file in this folder. Double-click it in Finder
+     and it shows you what has changed, asks you to confirm, and sends everything to
+     GitHub. The live site updates a minute later.</p>
+
+  <p>It uses whichever GitHub sign-in is already on your Mac, so <strong>it never asks you
+     for a password or token</strong> — and neither will I. That stays between you, your
+     Mac's keychain and GitHub.</p>
+
+  <div class="note">
+    <b>First time only — sign this Mac in to GitHub</b>
+    <p>Pick whichever suits you:</p>
+    <ul>
+      <li><strong>GitHub Desktop</strong> (easiest) — install from
+          <a href="https://desktop.github.com" target="_blank" rel="noopener">desktop.github.com</a>,
+          sign in, add this folder as a local repository.</li>
+      <li><strong>GitHub CLI</strong> — <code>brew install gh</code> then
+          <code>gh auth login</code>, which signs you in through your browser.</li>
+      <li><strong>Nothing extra</strong> — just push once and GitHub will prompt. The
+          "password" it wants is a <em>personal access token</em>, not your account
+          password: Settings → Developer settings → Personal access tokens. macOS keeps it
+          in the keychain afterwards.</li>
+    </ul>
+    <p>Then connect this folder to your repository, once:</p>
+    <pre><code>git init -b main
+git remote add origin https://github.com/YOUR-USERNAME/palio.git
+git add -A
+git commit -m "First publish"
+git push -u origin main</code></pre>
+  </div>
+
+  <h3>Or by hand, through the website</h3>
+  <ol class="steps">
+    <li>On the repository's main page, click <span class="btn">Add file</span> →
+        <strong>Upload files</strong>.</li>
+    <li>Drag the new <code>index.html</code> and <code>sw.js</code> in. GitHub replaces the
+        old ones.</li>
+    <li>Click <span class="btn">Commit changes</span>. The live site updates within a
+        minute.</li>
+  </ol>
+
+  <h3>How the installed app picks up a new version</h3>
+
+  <p>The app deliberately runs from its own saved copy. That's what makes it open instantly
+     and work with no connection — but it also means it will not quietly replace itself
+     while you're reading. <strong>Nothing changes until you ask.</strong></p>
+
+  <p>At the top of the dashboard there's a line that reads
+     <em>"Installed copy — updates are only fetched when you ask"</em> with a
+     <span class="btn">Check for updates</span> button beside it. That button is the whole
+     mechanism:</p>
+
+  <ul>
+    <li>When the app opens it quietly asks GitHub whether a newer version exists. If one
+        does, the line changes to <strong>"A new version is available"</strong> and the
+        button becomes <span class="btn">Update now</span>. Nothing is applied yet.</li>
+    <li>Pressing it throws away the saved copy of the app, activates the new version and
+        reloads. Takes a second or two.</li>
+    <li>You can press it any time, even when no update is waiting — it will always go and
+        check.</li>
+  </ul>
+
+  <div class="tip">
+    <b>Your banners are kept</b>
+    <p>Updating clears the app files but deliberately leaves the drappellone photographs
+    alone. Those never change once published, so re-downloading them would cost you time
+    for nothing.</p>
+  </div>
+
+  <div class="tip">
+    <b>The version number now looks after itself</b>
+    <p>Browsers only treat an upload as genuinely new when the <code>CACHE_VERSION</code>
+    line in <code>sw.js</code> changes — and remembering to edit it by hand is exactly the
+    sort of thing that gets forgotten.</p>
+    <p>So it's no longer done by hand. The build script fingerprints the app and writes
+    that fingerprint in for you:</p>
+    <pre><code>const CACHE_VERSION = 'palio-e794e137';</code></pre>
+    <p>Identical content keeps its version; any change at all produces a new one. Nothing
+    for you to remember.</p>
+  </div>
+
+  <!-- ===================================================== -->
+  <h2 id="offline"><span class="num">5</span>What works offline</h2>
+
+  <ul>
+    <li><strong>The dashboard itself</strong> — every tab, chart, table and pop-up. All the
+        data is inside <code>index.html</code>, so nothing needs fetching.</li>
+    <li><strong>Drappellone photographs you've already viewed.</strong> These live on
+        ilpalio.org and are linked rather than copied; the service worker saves each one the
+        first time you see it. Banners you've never opened won't appear until you're back
+        online.</li>
+  </ul>
+
+  <div class="tip">
+    <b>Why the banners aren't bundled in</b>
+    <p>Copying all 537 into the app would add roughly 22&nbsp;MB and make it slow to open,
+    so they're linked instead. The side benefit is that new banners appear on their own as
+    soon as ilpalio.org posts them, with no update needed here.</p>
+    <p>They are served from ilpalio.org — their bandwidth, and a public site draws more of it
+    than a file on your own machine. It's a small archive of small thumbnails and this is a
+    personal project, so the load is negligible. If you'd rather not lean on someone else's
+    server at all, the alternative is to copy a subset in; the last 25 years is about
+    1.5&nbsp;MB, which is perfectly manageable.</p>
+  </div>
+
+  <footer>
+    Data from <a href="https://www.ilpalio.org/" target="_blank" rel="noopener">ilpalio.org</a>.
+    Unofficial personal project — not affiliated with the Comune di Siena or the Consorzio
+    per la Tutela del Palio.
+  </footer>
+</div>
+</body>
+</html>
