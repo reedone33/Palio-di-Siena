@@ -19,7 +19,7 @@
    tells every browser to throw away the old copy and fetch everything again.
    ========================================================================== */
 
-const CACHE_VERSION = 'palio-e9820cf9';
+const CACHE_VERSION = 'palio-e95060fc';
 const SHELL_CACHE = CACHE_VERSION + '-shell';
 const IMAGE_CACHE = CACHE_VERSION + '-banners';
 

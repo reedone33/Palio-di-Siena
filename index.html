@@ -3102,5 +3102,181 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+
+<!-- =====================================================================
+     NEWS LAYER  (added 9 Aug 2026)
+     A snapshot of current Palio coverage, tagged by which contrada, jockey
+     or horse each story mentions. One index; every panel filters it.
+     This block only ADDS behaviour — it wraps the page's existing sheet
+     functions from outside rather than modifying them.
+     ===================================================================== -->
+<style>
+  .newscard .nitem{padding:9px 0;border-bottom:1px solid rgba(255,255,255,.07)}
+  .newscard .nitem:last-child{border-bottom:0}
+  .nmeta{font-size:11px;opacity:.6;letter-spacing:.3px}
+  .ntitle{font-size:14px;margin-top:2px}
+  .ntitle a{text-decoration:none}
+  .ntitle a:hover{text-decoration:underline}
+  .nsum{font-size:12.5px;opacity:.72;margin-top:2px}
+  .nnone{opacity:.55;font-style:italic;font-size:13px}
+  .ntag{display:inline-block;font-size:10px;text-transform:uppercase;letter-spacing:.6px;
+        padding:1px 6px;border-radius:9px;background:rgba(200,118,60,.22);margin-left:6px}
+  .newsfuse{margin:10px 0 2px;padding:10px 12px;background:rgba(200,118,60,.10);
+            border-left:3px solid #c8763c;border-radius:0 6px 6px 0;font-size:13.5px;line-height:1.5}
+  .latestcell{font-size:12px;opacity:.72;max-width:250px}
+  .latestcell a{text-decoration:none;color:inherit}
+  .latestcell a:hover{color:#e0a94f;text-decoration:underline}
+  .newsstamp{opacity:.55;font-size:11.5px;margin-top:6px}
+</style>
+<script>
+(function(){
+  const NEWS = {"generated": "2026-08-09T20:40:00-04:00", "race": {"name": "Palio dell'Assunta", "date": "2026-08-16", "daysOut": 7, "stage": "Previsite complete — 95 horses eligible", "nextMilestone": "Prove regolamentate", "nextMilestoneWhen": "Tuesday 11 August, 06:00–08:00"}, "items": [{"date": "2026-08-09", "title": "Previsite Palio di Siena: i cavalli più attesi superano i controlli veterinari", "summary": "The most anticipated horses cleared veterinary screening; 95 of 108 remain eligible for the Tratta.", "url": "https://www.petstory.it/altri-animali/cavalli/2026/08/09/previsite-palio-di-siena-i-cavalli-piu-attesi-superano-i-controlli-veterinari/", "source": "PetStory", "contrade": [], "fantini": [], "cavalli": ["Diodoro", "Anda e Bola", "Benitos"], "tag": "previsite", "race": "2026-08-16"}, {"date": "2026-08-08", "title": "Terminate le previsite: il bilancio del veterinario Carlo Alberto Minniti", "summary": "Vet Carlo Alberto Minniti described the overall clinical picture as excellent as screening closed.", "url": "https://www.brontolodicelasua.it/palio-di-siena-terminate-le-previsite-il-bilancio-del-veterinario-carlo-alberto-minniti-tutti-i-filmati", "source": "Brontolo dice la sua", "contrade": [], "fantini": [], "cavalli": [], "tag": "previsite", "race": "2026-08-16"}, {"date": "2026-08-07", "title": "Palio di agosto, ecco i 108 cavalli ammessi alle previsite. Tutti i big presenti", "summary": "All the leading horses appear on the admitted list: 18 already Palio-tested, 30 past the Tratta, 47 from regulated trials, 13 four-year-olds.", "url": "https://sienanews.it/cultura/palio/palio-di-agosto-ecco-i-108-cavalli-ammessi-alle-previsite-tutti-i-big-presenti/", "source": "Siena News", "contrade": [], "fantini": [], "cavalli": ["Diodoro", "Zio Frac", "Violenta da Clodia", "Remorex"], "tag": "previsite", "race": "2026-08-16"}, {"date": "2026-08-07", "title": "Palio di Siena 16 agosto, 108 i cavalli ammessi alle previsite", "summary": "The Municipal Technical Commission and the Palio Veterinary Commission set the admitted list at 108.", "url": "https://sienafree.it/185724-palio-di-siena-16-agosto-108-i-cavalli-ammessi-alle-previsite", "source": "SienaFree", "contrade": [], "fantini": [], "cavalli": [], "tag": "previsite", "race": "2026-08-16"}, {"date": "2026-08-06", "title": "Palio, 108 cavalli iscritti alla previsita", "summary": "Screening ran 6–8 August at the Ceppo veterinary clinic in Monteresi.", "url": "https://www.gazzettadisiena.it/palio-108-cavalli-iscritti-alla-previsita/", "source": "Gazzetta di Siena", "contrade": [], "fantini": [], "cavalli": [], "tag": "previsite", "race": "2026-08-16"}, {"date": "2026-08-05", "title": "Palio del 16 agosto 2026, pubblicato il calendario delle previsite", "summary": "The screening timetable at the Ceppo clinic was published.", "url": "https://sienafree.it/185736-palio-del-16-agosto-2026-pubblicato-il-calendario-delle-previsite", "source": "SienaFree", "contrade": [], "fantini": [], "cavalli": [], "tag": "previsite", "race": "2026-08-16"}, {"date": "2026-08-04", "title": "Palio di Siena del 16 agosto 2026, tutti gli orari", "summary": "Full hour-by-hour schedule for race week and race day.", "url": "https://sienafree.it/185851-palio-di-siena-del-16-agosto-2026-tutti-gli-orari", "source": "SienaFree", "contrade": [], "fantini": [], "cavalli": [], "tag": "ordinanze", "race": "2026-08-16"}, {"date": "2026-08-03", "title": "Siena rimane modello per la tutela del cavallo", "summary": "The mayor used the screening process to restate Siena's horse-welfare position.", "url": "https://www.centritalianews.it/siena-palio-16-agosto-sindaco-fabio-siena-rimane-modello-per-la-tutela-del-cavallo/", "source": "Centro Italia News", "contrade": [], "fantini": [], "cavalli": [], "tag": "ordinanze", "race": "2026-08-16"}, {"date": "2026-08-01", "title": "Palio 16 agosto 2026, le disposizioni per il passaggio delle Contrade", "summary": "An ordinance clears street furniture from the routes horses and contrada groups use between the stables and the Campo.", "url": "https://www.brontolodicelasua.it/palio-16-agosto-2026-le-disposizioni-per-il-passaggio-delle-contrade", "source": "Brontolo dice la sua", "contrade": [], "fantini": [], "cavalli": [], "tag": "ordinanze", "race": "2026-08-16"}, {"date": "2026-07-28", "title": "Palio 16 agosto 2026, firmate le ulteriori ordinanze", "summary": "Further mayoral ordinances signed covering the trials, screening and the Tratta.", "url": "https://sienafree.it/185601-palio-16-agosto-2026-firmate-le-ulteriori-ordinanze", "source": "SienaFree", "contrade": [], "fantini": [], "cavalli": [], "tag": "ordinanze", "race": "2026-08-16"}, {"date": "2026-07-08", "title": "Palio 16 agosto 2026: estratte Aquila, Onda e Giraffa", "summary": "Aquila, Onda and Giraffa were drawn by lot to complete the field of ten.", "url": "https://www.comune.siena.it/novita/palio-16-agosto-2026-estratte-aquila-onda-e-giraffa", "source": "Comune di Siena", "contrade": ["Aquila", "Onda", "Giraffa"], "fantini": [], "cavalli": [], "tag": "tratta", "race": "2026-08-16"}, {"date": "2026-07-07", "title": "Le 10 contrade al Palio di Siena di agosto 2026 e i segreti della corsa", "summary": "Overview of the ten contrade in the field and how the race works.", "url": "https://www.idealista.it/news/vacanze/mete-turistiche/2026/07/07/405077-le-10-contrade-al-palio-di-siena-di-agosto-2026-e-i-segreti-della-corsa", "source": "idealista", "contrade": ["Selva", "Chiocciola", "Oca", "Nicchio", "Lupa", "Istrice", "Torre", "Aquila", "Onda", "Giraffa"], "fantini": [], "cavalli": [], "tag": "tratta", "race": "2026-08-16"}, {"date": "2026-07-06", "title": "Palio 16 agosto 2026: prime ipotesi sulle monte", "summary": "Early speculation on jockey deals: Giraffa and Selva have no rival and can hire freely, while Oca–Onda–Torre and Istrice–Lupa are constrained by their rivalries.", "url": "https://www.lavocedelpalio.it/2026/7/Palio_16_agosto_2026_prime_ipotesi_sulle_monte_2026-07-06-06-13-05pm", "source": "La Voce del Palio", "contrade": ["Giraffa", "Selva", "Oca", "Onda", "Torre", "Istrice", "Lupa"], "fantini": ["TITTIA", "BRIGANTE"], "cavalli": [], "tag": "monte", "race": "2026-08-16"}]};
+  window.NEWS = NEWS;
+
+  const nDate = iso => new Date(iso + 'T12:00:00')
+        .toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'});
+
+  // The whole feature rests on this: filter one shared index by entity name,
+  // instead of searching per contrada / jockey / horse.
+  function newsFor(kind, name){
+    if(!name) return [];
+    const n = String(name).toLowerCase();
+    return NEWS.items.filter(i => (i[kind] || []).some(x => x.toLowerCase() === n));
+  }
+  window.newsFor = newsFor;
+
+  function itemHtml(n){
+    return `<div class="nitem">
+      <div class="nmeta">${nDate(n.date)} · ${n.source}<span class="ntag">${n.tag}</span></div>
+      <div class="ntitle"><a href="${n.url}" target="_blank" rel="noopener">${n.title}</a></div>
+      <div class="nsum">${n.summary}</div></div>`;
+  }
+
+  function newsBlock(items, heading){
+    const h = `<h4>${heading || 'Recent mentions'}</h4>`;
+    if(!items.length) return h + '<p class="nnone">No recent coverage.</p>';
+    return h + '<div class="newscard">' + items.slice(0,5).map(itemHtml).join('') + '</div>';
+  }
+
+  /* ---- 1. "Latest news" card on the Next Palio tab ------------------- */
+  function addNextCard(){
+    const panel = document.getElementById('next');
+    if(!panel || document.getElementById('newsNext')) return;
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.id = 'newsNext';
+    card.style.marginTop = '14px';
+    card.innerHTML = `<h2>Latest news</h2>
+      <p class="note" style="margin-top:-2px">
+        ${NEWS.race.stage}. Next: <strong>${NEWS.race.nextMilestone}</strong>,
+        ${NEWS.race.nextMilestoneWhen}.</p>
+      <div class="newscard">${NEWS.items.slice(0,6).map(itemHtml).join('')}</div>
+      <p class="newsstamp">News as of ${new Date(NEWS.generated).toLocaleString('en-GB',
+        {day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'})}
+        — a snapshot taken when this page was built, not a live feed.</p>`;
+    // Sits directly under the header card so it reads before the field.
+    const first = panel.querySelector('.card');
+    first && first.nextSibling ? panel.insertBefore(card, first.nextSibling)
+                               : panel.appendChild(card);
+  }
+
+  /* ---- 2. "Latest" column on the Contrade table ---------------------- */
+  // The table is re-drawn when a column is sorted, so re-apply after clicks.
+  function addLatestColumn(){
+    const t = document.getElementById('tContrade');
+    if(!t) return;
+    const hr = t.querySelector('thead tr');
+    if(hr && !hr.querySelector('.latesth')){
+      const th = document.createElement('th');
+      th.className = 'latesth';
+      th.textContent = 'Latest';
+      hr.appendChild(th);
+    }
+    t.querySelectorAll('tbody tr').forEach(tr => {
+      if(tr.querySelector('.latestcell')) return;
+      const name = tr.cells[0] ? tr.cells[0].textContent.trim() : '';
+      const n = newsFor('contrade', name)[0];
+      const td = document.createElement('td');
+      td.innerHTML = n
+        ? `<span class="latestcell"><a href="${n.url}" target="_blank" rel="noopener"
+             onclick="event.stopPropagation()">${
+             n.title.length > 46 ? n.title.slice(0,46) + '…' : n.title}</a></span>`
+        : '';
+      tr.appendChild(td);
+    });
+  }
+
+  /* ---- 3. "Recent mentions" appended to the detail sheets ------------ */
+  // The fusion line: historical standing plus what is happening right now.
+  // Written only from facts already on the page; omitted when there is
+  // nothing current to say.
+  function contradaFuse(name){
+    const inField = (typeof FIELD !== 'undefined' && typeof CNAME !== 'undefined')
+      ? FIELD.some(i => CNAME[i] === name) : false;
+    const idx = (typeof CNAME !== 'undefined') ? CNAME.indexOf(name) : -1;
+    const c = (idx >= 0 && typeof C !== 'undefined') ? C[idx] : null;
+    if(!c) return '';
+    const bits = [];
+    if(c.drought >= 25) bits.push(`<strong>la nonna</strong> — ${c.drought} races without a win`);
+    else if(c.drought === 0) bits.push('<strong>reigning</strong> — won the most recent Palio');
+    else if(c.drought <= 3) bits.push(`won recently — ${c.drought} race${c.drought===1?'':'s'} ago`);
+    if(!inField){
+      return bits.length
+        ? `${name} is ${bits[0]}, and is <strong>not</strong> in the field for ${nDate(NEWS.race.date)}.`
+        : '';
+    }
+    return `${name} — ${bits.length ? bits[0] + ' — ' : ''}is in the field for `
+         + `${nDate(NEWS.race.date)}.`;
+  }
+
+  function appendToSheet(html){
+    const body = document.getElementById('modalBody')
+              || document.querySelector('.modal .body, #modal .body');
+    if(body) body.insertAdjacentHTML('beforeend', html);
+  }
+
+  // Wrap the existing sheet builders. The originals run untouched; we only
+  // append afterwards, so nothing in the current page can break.
+  function wrap(fnName, kind, nameFrom, fuseFrom){
+    const original = window[fnName];
+    if(typeof original !== 'function') return;
+    window[fnName] = function(arg){
+      const r = original.apply(this, arguments);
+      try{
+        const name = nameFrom(arg);
+        const fuse = fuseFrom ? fuseFrom(name) : '';
+        appendToSheet((fuse ? `<div class="newsfuse">${fuse}</div>` : '')
+                      + newsBlock(newsFor(kind, name)));
+      }catch(e){ /* never let the news layer break a sheet */ }
+      return r;
+    };
+  }
+
+  function install(){
+    addNextCard();
+    addLatestColumn();
+    wrap('showContrada', 'contrade', idx => (typeof CNAME !== 'undefined' ? CNAME[idx] : ''), contradaFuse);
+    wrap('showJockey',  'fantini',  n => n);
+    wrap('showHorse',   'cavalli',  n => n);
+
+    // Re-apply the Latest column whenever the table is re-sorted.
+    const t = document.getElementById('tContrade');
+    if(t) t.addEventListener('click', () => setTimeout(addLatestColumn, 0));
+
+    // Footer stamp, so the snapshot never looks live.
+    const foot = document.querySelector('footer');
+    if(foot) foot.insertAdjacentHTML('beforeend',
+      `<div class="newsstamp">News layer as of ${new Date(NEWS.generated)
+        .toLocaleString('en-GB',{day:'numeric',month:'long',year:'numeric',
+                                 hour:'2-digit',minute:'2-digit'})} — snapshot, not live.</div>`);
+  }
+
+  if(document.readyState === 'loading')
+    document.addEventListener('DOMContentLoaded', () => setTimeout(install, 0));
+  else setTimeout(install, 0);
+})();
+</script>
+
+
 </body>
 </html>
