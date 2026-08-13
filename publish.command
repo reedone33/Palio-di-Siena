@@ -34,11 +34,10 @@ fi
 if [ ! -d .git ]; then
   echo "  This folder isn't connected to a GitHub repository yet."
   echo ""
-  echo "  Run these four lines in Terminal, from this folder, replacing"
-  echo "  YOUR-USERNAME and the repository name if you chose a different one:"
+  echo "  Run these five lines in Terminal, from this folder:"
   echo ""
   echo "      git init -b main"
-  echo "      git remote add origin https://github.com/YOUR-USERNAME/palio.git"
+  echo "      git remote add origin https://github.com/reedone33/Palio-di-Siena.git"
   echo "      git add -A"
   echo "      git commit -m \"First publish\""
   echo "      git push -u origin main"

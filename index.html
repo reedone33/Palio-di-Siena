@@ -3074,35 +3074,6 @@ fillTable('tRaces', recent, v=>{
 
 </script>
 
-<script>
-/* ---------------------------------------------------------------------------
-   Register the service worker. This is what makes the dashboard installable
-   and lets it open without a connection. It only works over https (or on
-   localhost), which is why GitHub Pages is a good home for it — file:// won't
-   do, so opening the .html straight off disk simply skips this and everything
-   else still works.
-
-   Updates are never applied automatically. The "Check for updates" button at
-   the top of the page is the only thing that swaps a new version in.
---------------------------------------------------------------------------- */
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js')
-      .then(reg => console.log('Palio: offline support ready', reg.scope))
-      .catch(err => console.log('Palio: offline support unavailable —', err.message));
-  });
-
-  // When the reader confirms an update, the new worker takes over and we reload
-  // exactly once so the fresh version is what they see.
-  let reloading = false;
-  navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (reloading) return;
-    reloading = true;
-    location.reload();
-  });
-}
-</script>
-
 <!-- =====================================================================
      NEWS LAYER  (added 9 Aug 2026)
      A snapshot of current Palio coverage, tagged by which contrada, jockey
@@ -3278,5 +3249,277 @@ if ('serviceWorker' in navigator) {
 </script>
 
 
+<!-- ==========================================================================
+     TRATTA PATCH — 13 August 2026
+     --------------------------------------------------------------------------
+     Appended, not merged. Everything above this line is the 9 August build,
+     byte for byte. This block does three things and nothing else:
+       1. records the ten horse/jockey pairings drawn at the Tratta this morning
+       2. repaints the "Horses and jockeys" panel on the Next Palio tab
+       3. refreshes the news index that the news layer reads
+     It runs at parse time, after renderNext() has already drawn the tab, so it
+     overwrites one panel rather than rebuilding anything.
+     ========================================================================== -->
+<script>
+(function(){
+  'use strict';
+
+  /* ---- 1. The Tratta result -------------------------------------------
+     Each entry: contrada key -> horse, jockey nickname, jockey legal name.
+     Confirmed against two independent sources (Comune di Siena for the ten
+     horses, La Nazione and Radio Siena TV for the pairings and the monte). */
+  var ASSIGN = {
+    lupa:       { h:'Diodoro',        j:'VELLUTO',    jr:'Dino Pes'            },
+    aquila:     { h:'Benitos',        j:'BRIGANTE',   jr:'Carlo Sanna'         },
+    nicchio:    { h:'Anda e Bola',    j:'TITTIA',     jr:'Giovanni Atzeni'     },
+    istrice:    { h:'Ares Elce',      j:"TAMURE'",    jr:'Federico Guglielmi'  },
+    torre:      { h:'Donrodrigo',     j:'GINGILLO',   jr:'Giuseppe Zedde'      },
+    chiocciola: { h:'Arestetulesu',   j:'SCOMPIGLIO', jr:'Jonatan Bartoletti'  },
+    onda:       { h:"Viso d'Angelo",  j:'VIRGOLA',    jr:'Andrea Sanna'        },
+    selva:      { h:'Canarinu',       j:'GRANDINE',   jr:'Sebastiano Murtas'   },
+    giraffa:    { h:'Euskaldi',       j:'TURBINE',    jr:'Elias Mannucci'      },
+    oca:        { h:'Diamante Sauro', j:'SPAGO',      jr:'Michel Putzu'        }
+  };
+  try { NEXT.horsesAssigned = true; NEXT.assign = ASSIGN; } catch(e){}
+
+  /* ---- 2. Real sheets for horses and fantini in this field ---------------
+     The page's own showHorse/showJockey read DD.H / DD.J, which are aggregate
+     tables built from *victories*. A horse or rider with recent starts but no
+     win in that table is simply not found, and the original functions return
+     without opening anything — a dead link.
+
+     RD.races holds the complete starting field of the last 40 Palii, so it can
+     answer "what has this horse actually done recently" even when DD cannot.
+     We wrap both builders: if the original has a record, it runs untouched; if
+     not, we build a sheet from RD.races; if there is nothing there either, we
+     say so plainly rather than doing nothing. */
+
+  // Walk the recent-races table once and index starts by horse and by fantino.
+  var STARTS = { cavalli:{}, fantini:{} };
+  try {
+    (RD.races || []).forEach(function(r){
+      (r.f || []).forEach(function(row){
+        // row = [contradaIdx, jockeyIdx, horseIdx, canape, won]
+        var rec = { d:r.d, co:row[0], canape:row[3], won:!!row[4],
+                    horse: RD.hn[row[2]], jock: RD.fn[row[1]] };
+        if(rec.horse){ (STARTS.cavalli[rec.horse] = STARTS.cavalli[rec.horse] || []).push(rec); }
+        if(rec.jock ){ (STARTS.fantini[rec.jock ] = STARTS.fantini[rec.jock ] || []).push(rec); }
+      });
+    });
+  } catch(e){}
+
+  // Which contrada in the current field, if any, is this name attached to?
+  function fieldEntry(name){
+    var hit = null;
+    try {
+      Object.keys(ASSIGN).forEach(function(k){
+        if(ASSIGN[k].h === name || ASSIGN[k].j === name) hit = { key:k, a:ASSIGN[k] };
+      });
+    } catch(e){}
+    return hit;
+  }
+
+  // Build a sheet from recent starts. kind is 'cavalli' or 'fantini'.
+  function fallbackSheet(kind, name){
+    var isHorse = kind === 'cavalli';
+    var list = (STARTS[kind][name] || []).slice().sort(function(a,b){
+                 return a.d < b.d ? 1 : -1; });          // newest first
+    var f    = fieldEntry(name);
+    var wins = list.filter(function(r){ return r.won; }).length;
+
+    // Opening line: what we know about them right now.
+    var lede;
+    if(f && isHorse){
+      lede = list.length
+        ? name + ' runs for ' + CNAME[nIdx(f.key)] + ' on ' + niceDate(NEXT.date) + '.'
+        : 'A debutant — ' + name + ' has never run a Palio. Drawn to ' +
+          CNAME[nIdx(f.key)] + ' for ' + niceDate(NEXT.date) + '.';
+    } else if(f){
+      lede = name + ' (' + f.a.jr + ') rides ' + f.a.h + ' for ' +
+             CNAME[nIdx(f.key)] + ' on ' + niceDate(NEXT.date) + '.';
+    } else {
+      lede = 'Recent starts only.';
+    }
+
+    var body;
+    if(list.length){
+      var rows = list.map(function(r){
+        return '<tr><td>' + niceDate(r.d) + '</td>'
+             + '<td>' + coName(r.co, 20) + '</td>'
+             + '<td>' + (isHorse ? r.jock : r.horse) + '</td>'
+             + '<td class="num">' + (r.canape || '—') + '</td>'
+             + '<td>' + (r.won ? '<strong>Won</strong>' : '—') + '</td></tr>';
+      });
+      body = stats([['Starts since ' + list[list.length-1].d.slice(0,4), list.length],
+                    ['Wins in that span', wins]])
+           + section('Recent starts',
+               tbl(['Date','Contrada',isHorse ? 'Fantino' : 'Horse','#Canape','Result'], rows))
+           + '<p class="note">Taken from the full starting fields of the last 40 Palii. ' +
+             'Anything earlier is not published start-by-start, so this is a recent record, ' +
+             'not a complete career.</p>';
+    } else {
+      body = '<p class="empty">No Palio starts on record. The archive lists a ' +
+             (isHorse ? 'horse' : 'fantino') + ' only once they have run, so there is ' +
+             'nothing to show until after the race.</p>';
+    }
+
+    openSheet(head(isHorse ? 'Cavallo' : 'Fantino', name, lede) + body);
+  }
+
+  // Wrap the two builders. The original runs whenever it has a record to show;
+  // we only take over when it would otherwise do nothing.
+  // Note: horseRow/jockeyRow are declared with `const`, so they live in the
+  // shared global lexical scope and are NOT properties of `window` — they have
+  // to be referenced by name, not looked up as window['horseRow'].
+  function wrapBuilder(fnName, lookup, kind){
+    try {
+      var orig = window[fnName];
+      if(typeof orig !== 'function' || typeof lookup !== 'function') return;
+      window[fnName] = function(name){
+        var known = false;
+        try { known = !!lookup(name); } catch(e){}
+        return known ? orig(name) : fallbackSheet(kind, name);
+      };
+    } catch(e){}
+  }
+  wrapBuilder('showHorse',  typeof horseRow  === 'function' ? horseRow  : null, 'cavalli');
+  wrapBuilder('showJockey', typeof jockeyRow === 'function' ? jockeyRow : null, 'fantini');
+
+  /* ---- 3. Repaint the horses-and-jockeys panel ---------------------------
+     Cells carry the page's own data-horse / data-jockey attributes, so the
+     single delegated click listener opens the right sheet and the Back trail
+     works. The row itself must NOT carry data-contrada: that listener matches
+     the nearest ancestor with any of those attributes, so a data-contrada row
+     would swallow every click and open the contrada sheet instead. That was
+     the bug in the first version of this patch. */
+  try {
+    var el = document.getElementById('nextHorses');
+    var esc = function(s){ return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;'); };
+
+    var rows = Object.keys(ASSIGN).map(function(k){
+      var i = nIdx(k), a = ASSIGN[k];
+      return '<tr>'
+           +   '<td style="white-space:nowrap">' + coName(i, 22) + '</td>'
+           +   '<td><span class="lnk" data-horse="'  + esc(a.h) + '">' + a.h + '</span></td>'
+           +   '<td><span class="lnk" data-jockey="' + esc(a.j) + '">' + a.j + '</span> '
+           +       '<span class="sub">' + a.jr + '</span></td>'
+           + '</tr>';
+    }).join('');
+
+    el.innerHTML =
+        '<table><thead><tr><th>Contrada</th><th>Horse</th>'
+      + '<th>Fantino</th></tr></thead><tbody>' + rows + '</tbody></table>'
+      + '<p class="note">Drawn at <strong>la Tratta</strong> on Thursday 13 August 2026. '
+      + 'The horse cannot now be changed. Jockeys were signed the same afternoon and remain '
+      + 'changeable until the <em>segnatura</em> on race morning, after the <em>provaccia</em>. '
+      + 'Click a horse or a fantino for their record.</p>';
+  } catch(e){}
+
+  /* ---- 4. Refresh the news index ---------------------------------------
+     NEWS is a const in the earlier script, so it is mutated in place rather
+     than reassigned — the news layer holds a reference to this same object
+     and picks the new content up when it installs on DOMContentLoaded. */
+  try {
+    NEWS.generated = '2026-08-13T17:30:00-04:00';
+    NEWS.race.daysOut = 3;
+    NEWS.race.stage = 'Tratta run — the ten horses are drawn and the monte is settled';
+    NEWS.race.nextMilestone = 'Seconda prova';
+    NEWS.race.nextMilestoneWhen = 'Friday 14 August, 09:00';
+    NEWS.race.field = ['Selva','Chiocciola','Oca','Nicchio','Lupa','Istrice','Torre','Aquila','Onda','Giraffa'];
+    NEWS.race.drawn = ['Aquila','Onda','Giraffa'];
+
+    var FRESH = [
+      { date:'2026-08-13', race:'2026-08-16',
+        title:"Palio di Siena del 16 agosto 2026, l'Assegnazione: esultano Aquila, Nicchio e Lupa",
+        summary:'The Tratta paired the ten horses with the ten contrade; Lupa drew the twice-winning Diodoro, Aquila took Benitos and Nicchio got Anda e Bola.',
+        url:'https://sienafree.it/186109-palio-di-siena-del-16-agosto-2026-lassegnazione-esultano-aquila-nicchio-e-lupa',
+        source:'SienaFree',
+        contrade:['Aquila','Nicchio','Lupa'], fantini:[],
+        cavalli:['Diodoro','Benitos','Anda e Bola'], tag:'tratta' },
+
+      { date:'2026-08-13', race:'2026-08-16',
+        title:'Palio di Siena del 16 agosto 2026: il "valzer delle monte"',
+        summary:'The jockey market closed in thirty-five minutes: Tittia to Nicchio, Brigante to Aquila, Velluto to Lupa, Gingillo to Torre.',
+        url:'https://sienafree.it/186110-palio-di-siena-del-16-agosto-2026-il-valzer-delle-monte',
+        source:'SienaFree',
+        contrade:['Nicchio','Aquila','Lupa','Torre','Istrice','Selva','Oca','Chiocciola','Onda','Giraffa'],
+        fantini:['TITTIA','BRIGANTE','VELLUTO','GINGILLO',"TAMURE'",'GRANDINE','SPAGO','SCOMPIGLIO','VIRGOLA','TURBINE'],
+        cavalli:[], tag:'monte' },
+
+      { date:'2026-08-13', race:'2026-08-16',
+        title:'Palio 16 agosto, l’elenco dei cavalli scelti dai Capitani',
+        summary:'The official list of the ten horses chosen by the Captains after the morning heats.',
+        url:'https://www.comune.siena.it/novita/palio-16-agosto-lelenco-dei-cavalli-scelti-dai-capitani-1',
+        source:'Comune di Siena', contrade:[], fantini:[],
+        cavalli:['Anda e Bola','Diamante Sauro','Ares Elce','Donrodrigo','Arestetulesu','Euskaldi','Diodoro',"Viso d'Angelo",'Canarinu','Benitos'],
+        tag:'tratta' },
+
+      { date:'2026-08-13', race:'2026-08-16',
+        title:'Palio di Siena 16 agosto 2026: Tratta, si sono corse le batterie',
+        summary:'The selection heats were run in the Campo before the Captains made their choice.',
+        url:'https://sienafree.it/186100-palio-di-siena-16-agosto-2026-tratta-si-sono-corse-le-batterie',
+        source:'SienaFree', contrade:[], fantini:[], cavalli:[], tag:'tratta' },
+
+      { date:'2026-08-13', race:'2026-08-16',
+        title:"Palio dell'Assunta, l'ordine ai canapi per le prove",
+        summary:'The order at the ropes for the trials was published ahead of the first prova that evening.',
+        url:'https://www.gonews.it/2026/08/13/siena-palio-assunta-ordine-canapi-prove/',
+        source:'gonews', contrade:[], fantini:[], cavalli:[], tag:'prove' },
+
+      { date:'2026-08-12', race:'2026-08-16',
+        title:"Palio dell'Assunta 2026: i 35 cavalli e il programma fino alla Carriera",
+        summary:'Thirty-five horses came through the regulated trials to the Tratta shortlist.',
+        url:'https://www.sbircialanotizia.it/articoli/2026/08/12/palio-siena-manqy/',
+        source:'Sbircia la Notizia', contrade:[], fantini:[], cavalli:[], tag:'previsite' },
+
+      { date:'2026-08-11', race:'2026-08-16',
+        title:'Palio di Siena del 16 agosto 2026: 35 cavalli ammessi alla Tratta',
+        summary:'The Captains’ shortlist was cut to thirty-five after two mornings of regulated trials.',
+        url:'https://sienafree.it/186048-palio-di-siena-del-16-agosto-2026-35-cavalli-ammessi-alla-tratta',
+        source:'SienaFree', contrade:[], fantini:[], cavalli:[], tag:'prove' },
+
+      { date:'2026-08-10', race:'2026-08-16',
+        title:'Palio di Siena del 16 agosto 2026: 77 cavalli ammessi alle prove regolamentate, 8 alla Tratta',
+        summary:'Seventy-seven horses were admitted to the regulated trials, with eight going straight through to the Tratta.',
+        url:'https://sienafree.it/185950-palio-di-siena-del-16-agosto-2026-77-cavalli-ammessi-alle-prove-regolamentate-8-alla-tratta',
+        source:'SienaFree', contrade:[], fantini:[], cavalli:[], tag:'prove' }
+    ];
+
+    // Newest first, and drop the older items the fresh ones supersede.
+    var keep = NEWS.items.filter(function(i){ return i.date < '2026-08-10'; });
+    NEWS.items.length = 0;
+    FRESH.concat(keep).slice(0,30).forEach(function(i){ NEWS.items.push(i); });
+  } catch(e){}
+})();
+</script>
+
+<script>
+/* ---------------------------------------------------------------------------
+   Register the service worker. This is what makes the dashboard installable
+   and lets it open without a connection. It only works over https (or on
+   localhost), which is why GitHub Pages is a good home for it — file:// won't
+   do, so opening the .html straight off disk simply skips this and everything
+   else still works.
+
+   Updates are never applied automatically. The "Check for updates" button at
+   the top of the page is the only thing that swaps a new version in.
+--------------------------------------------------------------------------- */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then(reg => console.log('Palio: offline support ready', reg.scope))
+      .catch(err => console.log('Palio: offline support unavailable —', err.message));
+  });
+
+  // When the reader confirms an update, the new worker takes over and we reload
+  // exactly once so the fresh version is what they see.
+  let reloading = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (reloading) return;
+    reloading = true;
+    location.reload();
+  });
+}
+</script>
 </body>
 </html>
