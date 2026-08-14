@@ -3940,6 +3940,161 @@ fillTable('tRaces', recent, v=>{
 })();
 </script>
 
+
+<!-- ==========================================================================
+     NEWS REFRESH — 14 August 2026, 23:55 Siena
+     Three prove run. NEWS is a const, so it is mutated in place; the news layer
+     holds a reference to this same object and reads the new content when it
+     installs on DOMContentLoaded.
+     ========================================================================== -->
+<script>
+(function(){
+  'use strict';
+  try {
+    NEWS.generated = '2026-08-14T17:55:00-04:00';
+    NEWS.race.daysOut = 2;
+    NEWS.race.stage = 'Three prove run — Giraffa has taken the last two';
+    NEWS.race.nextMilestone = 'Prova generale';
+    NEWS.race.nextMilestoneWhen = 'Saturday 15 August, 19:15 Siena time';
+    var FRESH = [
+  {
+    "date": "2026-08-14",
+    "race": "2026-08-16",
+    "title": "Palio di Siena del 16 agosto 2026: la terza prova alla Giraffa",
+    "summary": "Giraffa took the third prova, run at 19:15 on Friday evening — its second trial win of the day.",
+    "url": "https://sienafree.it/186454-palio-di-siena-del-16-agosto-2026-la-terza-prova-alla-giraffa",
+    "source": "SienaFree",
+    "contrade": [
+      "Giraffa"
+    ],
+    "fantini": [],
+    "cavalli": [],
+    "tag": "prove"
+  },
+  {
+    "date": "2026-08-14",
+    "race": "2026-08-16",
+    "title": "Palio di Siena del 16 agosto 2026: la seconda prova alla Giraffa",
+    "summary": "Giraffa also won the morning's second prova.",
+    "url": "https://sienafree.it/186215-palio-di-siena-del-16-agosto-2026-la-seconda-prova-alla-giraffa",
+    "source": "SienaFree",
+    "contrade": [
+      "Giraffa"
+    ],
+    "fantini": [],
+    "cavalli": [],
+    "tag": "prove"
+  },
+  {
+    "date": "2026-08-14",
+    "race": "2026-08-16",
+    "title": "Palio di Siena del 16 agosto 2026: il borsino delle coppiate della prima giornata",
+    "summary": "First assessment of how each horse-and-jockey pairing is shaping up after the opening day of trials.",
+    "url": "https://sienafree.it/186199-palio-di-siena-del-16-agosto-2026-il-borsino-delle-coppiate-della-prima-giornata",
+    "source": "SienaFree",
+    "contrade": [],
+    "fantini": [],
+    "cavalli": [],
+    "tag": "prove"
+  },
+  {
+    "date": "2026-08-13",
+    "race": "2026-08-16",
+    "title": "Palio di Siena del 16 agosto 2026: la prima prova all'Onda",
+    "summary": "Onda won the opening prova on Thursday evening, the first outing for the newly drawn pairings.",
+    "url": "https://sienafree.it/186198-palio-di-siena-del-16-agosto-2026-la-prima-prova-allonda",
+    "source": "SienaFree",
+    "contrade": [
+      "Onda"
+    ],
+    "fantini": [],
+    "cavalli": [],
+    "tag": "prove"
+  },
+  {
+    "date": "2026-08-13",
+    "race": "2026-08-16",
+    "title": "Palio di Siena 16 agosto 2026: i 10 cavalli al canape",
+    "summary": "The official list of the ten horses that will line up at the rope.",
+    "url": "https://sienafree.it/186108-palio-di-siena-16-agosto-2026-i-10-cavalli-al-canape",
+    "source": "SienaFree",
+    "contrade": [],
+    "fantini": [],
+    "cavalli": [
+      "Diodoro",
+      "Benitos",
+      "Anda e Bola",
+      "Ares Elce",
+      "Donrodrigo",
+      "Arestetulesu",
+      "Viso d'Angelo",
+      "Canarinu",
+      "Euskaldi",
+      "Diamante Sauro"
+    ],
+    "tag": "tratta"
+  },
+  {
+    "date": "2026-08-13",
+    "race": "2026-08-16",
+    "title": "Palio di Siena del 16 agosto 2026: l'assegnazione, esultano Aquila, Nicchio e Lupa",
+    "summary": "The Tratta paired the ten horses with the ten contrade; Lupa drew the twice-winning Diodoro.",
+    "url": "https://sienafree.it/186109-palio-di-siena-del-16-agosto-2026-lassegnazione-esultano-aquila-nicchio-e-lupa",
+    "source": "SienaFree",
+    "contrade": [
+      "Aquila",
+      "Nicchio",
+      "Lupa"
+    ],
+    "fantini": [],
+    "cavalli": [
+      "Diodoro",
+      "Benitos",
+      "Anda e Bola"
+    ],
+    "tag": "tratta"
+  },
+  {
+    "date": "2026-08-13",
+    "race": "2026-08-16",
+    "title": "Palio di Siena del 16 agosto 2026: il \"valzer delle monte\"",
+    "summary": "The jockey market closed in thirty-five minutes: Tittia to Nicchio, Brigante to Aquila, Velluto to Lupa, Gingillo to Torre.",
+    "url": "https://sienafree.it/186110-palio-di-siena-del-16-agosto-2026-il-valzer-delle-monte",
+    "source": "SienaFree",
+    "contrade": [
+      "Nicchio",
+      "Aquila",
+      "Lupa",
+      "Torre",
+      "Istrice",
+      "Selva",
+      "Oca",
+      "Chiocciola",
+      "Onda",
+      "Giraffa"
+    ],
+    "fantini": [
+      "TITTIA",
+      "BRIGANTE",
+      "VELLUTO",
+      "GINGILLO",
+      "TAMURE'",
+      "GRANDINE",
+      "SPAGO",
+      "SCOMPIGLIO",
+      "VIRGOLA",
+      "TURBINE"
+    ],
+    "cavalli": [],
+    "tag": "monte"
+  }
+];
+    NEWS.items.length = 0;
+    FRESH.forEach(function(i){ NEWS.items.push(i); });
+  } catch(e){}
+})();
+</script>
+
 <script>
 /* ---------------------------------------------------------------------------
    Register the service worker. This is what makes the dashboard installable
