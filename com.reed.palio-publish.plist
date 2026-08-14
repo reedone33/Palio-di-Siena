@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!-- A launchd "user agent": a small job macOS runs for you on a schedule.
+       This one publishes the Palio app a few minutes after each scheduled
+       news refresh has written new files into the repository folder. -->
+
+  <key>Label</key>
+  <string>com.reed.palio-publish</string>
+
+  <!-- What to run. Full path, because launchd has no idea where you are. -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/reed/Documents/GitHub/Palio-di-Siena/publish-auto.command</string>
+  </array>
+
+  <!-- When to run. Times are your Mac's local clock, so this follows Eastern
+       time and handles daylight saving on its own — no UTC arithmetic.
+       Ten past the hour, giving the refresh time to land its files first. -->
+  <key>StartCalendarInterval</key>
+  <array>
+    <dict><key>Hour</key><integer>6</integer><key>Minute</key><integer>10</integer></dict>
+    <dict><key>Hour</key><integer>12</integer><key>Minute</key><integer>10</integer></dict>
+    <dict><key>Hour</key><integer>15</integer><key>Minute</key><integer>10</integer></dict>
+  </array>
+
+  <!-- If the Mac was asleep at the scheduled moment, run once on waking
+       rather than skipping that slot entirely. -->
+  <key>RunAtLoad</key>
+  <false/>
+
+  <!-- launchd's own output. The script keeps its own readable log at
+       ~/Library/Logs/palio-publish.log — these two catch anything that goes
+       wrong before the script gets going. -->
+  <key>StandardOutPath</key>
+  <string>/Users/reed/Library/Logs/palio-publish.out</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/reed/Library/Logs/palio-publish.err</string>
+</dict>
+</plist>
