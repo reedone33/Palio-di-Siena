@@ -4969,6 +4969,24 @@ svg.leaflet-image-layer.leaflet-interactive path {
         white-space:nowrap;pointer-events:none}
   .colabel:before{display:none !important}
   .lightmap .colabel{color:#1a1613;text-shadow:0 0 3px #fff,0 0 3px #fff,0 1px 2px #fff}
+  /* The rivalry pair list. Hidden until the Rivalries view is on. */
+  #contradaMap .pairs{display:none;gap:6px;flex-wrap:wrap;margin:10px 0 0}
+  #contradaMap.rivalmode .pairs{display:flex}
+  #contradaMap .pair{background:#241f1d;border:1px solid #4a3230;color:var(--ink,#efe9df);
+        border-radius:20px;padding:4px 11px;font-size:12px;cursor:pointer;white-space:nowrap}
+  #contradaMap .pair:hover{border-color:#b5544c}
+  #contradaMap .pair.on{background:#b5544c;border-color:#b5544c;color:#fff;font-weight:600}
+  #contradaMap .pair .vs{opacity:.6;margin:0 5px;font-style:italic}
+  #contradaMap .pair .since{opacity:.55;font-size:11px;margin-left:6px}
+  #contradaMap .pair.hidden{display:none}
+  #contradaMap .pairnote{font-size:11.5px;color:var(--muted,#a9a096);align-self:center;
+        margin-left:2px}
+  /* The line drawn between two enemies, and its label. */
+  .rivlabel{background:rgba(181,84,76,.92) !important;border:0 !important;color:#fff !important;
+        font:600 11px/1 system-ui,sans-serif !important;padding:3px 7px !important;
+        border-radius:11px !important;box-shadow:none !important;white-space:nowrap;
+        pointer-events:none}
+  .rivlabel:before{display:none !important}
   #contradaMap .realmap.lightmap{background:#eae6df}
   #contradaMap .realmap.lightmap .leaflet-overlay-pane{
         filter:drop-shadow(0 0 1px rgba(0,0,0,.75))}
@@ -4984,6 +5002,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 (function(){
   'use strict';
   var GEO = {"type":"FeatureCollection","name":"Contrade di Siena","attribution":"Boundaries © OpenStreetMap contributors, ODbL. Statistics from ilpalio.org.","features":[{"type":"Feature","properties":{"name":"Aquila","name_it":"Contrada dell'Aquila","key":"aquila","wins":25,"runs_since_1762":305,"last_win":"2026-07-03","races_waiting":0,"rivals":["Pantera"],"in_field_2026_08_16":true,"fill":"#efc41c","fill-opacity":0.45,"stroke":"#141414","stroke-width":2,"description":"Aquila — 25 victories since 1633. Last won 2026-07-03. 0 races waiting. Rival: Pantera.","colour_a":"#efc41c","colour_b":"#efc41c","colour_trim":"#141414","colours":"yellow-gold, trimmed black and blue","fill_mode":"solid"},"geometry":{"type":"Polygon","coordinates":[[[11.33054,43.31629],[11.33001,43.31644],[11.32985,43.3163],[11.32973,43.31627],[11.32944,43.31626],[11.32923,43.31631],[11.32916,43.31613],[11.32905,43.31614],[11.32904,43.31621],[11.32895,43.31619],[11.32876,43.31633],[11.32847,43.31629],[11.32819,43.31642],[11.32891,43.31704],[11.32935,43.3175],[11.32925,43.31755],[11.32948,43.3178],[11.32985,43.31788],[11.33007,43.31803],[11.33029,43.31795],[11.33046,43.31782],[11.33087,43.31787],[11.33126,43.318],[11.33132,43.31793],[11.3313,43.31787],[11.33148,43.31744],[11.33152,43.31722],[11.3315,43.31713],[11.33133,43.31694],[11.33079,43.31654],[11.33054,43.31629]]]}},{"type":"Feature","properties":{"name":"Bruco","name_it":"Contrada del Bruco","key":"bruco","wins":33,"runs_since_1762":322,"last_win":"2008-08-16","races_waiting":32,"rivals":[],"in_field_2026_08_16":false,"fill":"#efc41c","fill-opacity":0.45,"stroke":"#2f5fa8","stroke-width":2,"description":"Bruco — 33 victories since 1633. Last won 2008-08-16. 32 races waiting. No standing rival.","colour_a":"#efc41c","colour_b":"#2e8b57","colour_trim":"#2f5fa8","colours":"yellow and green, trimmed blue","fill_mode":"stripe"},"geometry":{"type":"Polygon","coordinates":[[[11.33096,43.3218],[11.33051,43.32196],[11.33076,43.32216],[11.33141,43.32283],[11.33235,43.32353],[11.33276,43.3237],[11.33279,43.32364],[11.33282,43.32362],[11.33302,43.32367],[11.33303,43.32362],[11.33336,43.32352],[11.3351,43.32321],[11.33513,43.32325],[11.33517,43.32324],[11.33514,43.3232],[11.33548,43.32294],[11.33528,43.32253],[11.33521,43.32247],[11.33523,43.32246],[11.33499,43.32228],[11.33482,43.32237],[11.33449,43.32207],[11.33453,43.32205],[11.3345,43.32202],[11.33447,43.32204],[11.3345,43.32202],[11.33432,43.32177],[11.33408,43.32171],[11.33366,43.32199],[11.3336,43.32196],[11.33327,43.32197],[11.33293,43.32193],[11.33243,43.3218],[11.33221,43.3217],[11.332,43.32155],[11.33164,43.32124],[11.33117,43.32076],[11.33091,43.32061],[11.33029,43.3213],[11.33043,43.3214],[11.33039,43.32145],[11.3306,43.32161],[11.33072,43.32167],[11.3307,43.32169],[11.33096,43.3218]]]}},{"type":"Feature","properties":{"name":"Chiocciola","name_it":"Contrada della Chiocciola","key":"chiocciola","wins":49,"runs_since_1762":313,"last_win":"1999-08-16","races_waiting":51,"rivals":["Tartuca"],"in_field_2026_08_16":true,"fill":"#c0392b","fill-opacity":0.45,"stroke":"#2f5fa8","stroke-width":2,"description":"Chiocciola — 49 victories since 1633. Last won 1999-08-16. 51 races waiting. Rival: Tartuca.","colour_a":"#c0392b","colour_b":"#efc41c","colour_trim":"#2f5fa8","colours":"red and yellow, trimmed blue","fill_mode":"stripe"},"geometry":{"type":"Polygon","coordinates":[[[11.32512,43.31184],[11.32512,43.3118],[11.32542,43.31169],[11.3266,43.31104],[11.32697,43.31094],[11.32999,43.31131],[11.32957,43.31236],[11.32955,43.3131],[11.32882,43.31399],[11.32883,43.31418],[11.32872,43.31456],[11.32817,43.31434],[11.32786,43.31433],[11.32752,43.31411],[11.32733,43.31424],[11.32714,43.31424],[11.32671,43.31389],[11.32652,43.31382],[11.32627,43.31422],[11.32577,43.31399],[11.32595,43.3136],[11.32595,43.31336],[11.32568,43.31299],[11.32585,43.313],[11.32587,43.31308],[11.32627,43.31298],[11.32585,43.31271],[11.32623,43.31238],[11.326,43.31226],[11.3259,43.31237],[11.32583,43.31234],[11.3258,43.31237],[11.32573,43.31233],[11.32581,43.31225],[11.32557,43.31218],[11.32573,43.31201],[11.32512,43.31194],[11.32512,43.31184]]]}},{"type":"Feature","properties":{"name":"Civetta","name_it":"Contrada della Civetta","key":"civetta","wins":33,"runs_since_1762":309,"last_win":"2014-08-16","races_waiting":20,"rivals":["Leocorno"],"in_field_2026_08_16":false,"fill":"#c0392b","fill-opacity":0.45,"stroke":"#f7f3ea","stroke-width":2,"description":"Civetta — 33 victories since 1633. Last won 2014-08-16. 20 races waiting. Rival: Leocorno.","colour_a":"#c0392b","colour_b":"#141414","colour_trim":"#f7f3ea","colours":"red and black, trimmed white","fill_mode":"stripe"},"geometry":{"type":"Polygon","coordinates":[[[11.33249,43.3187],[11.33267,43.31912],[11.33258,43.31915],[11.33283,43.31954],[11.33293,43.3196],[11.33299,43.31985],[11.33263,43.31997],[11.33188,43.32044],[11.33183,43.32051],[11.33171,43.32094],[11.33167,43.32102],[11.33152,43.32112],[11.33117,43.32076],[11.33091,43.32061],[11.33109,43.32033],[11.33122,43.32008],[11.33079,43.32001],[11.33085,43.31983],[11.3309,43.31944],[11.33088,43.31937],[11.33078,43.31925],[11.33041,43.31902],[11.33077,43.3188],[11.33061,43.3186],[11.33058,43.31849],[11.33097,43.31846],[11.33101,43.31857],[11.33119,43.31873],[11.33148,43.3189],[11.33173,43.31896],[11.33193,43.31894],[11.33249,43.3187]]]}},{"type":"Feature","properties":{"name":"Drago","name_it":"Contrada del Drago","key":"drago","wins":39,"runs_since_1762":316,"last_win":"2022-07-02","races_waiting":8,"rivals":[],"in_field_2026_08_16":false,"fill":"#b23a48","fill-opacity":0.45,"stroke":"#efc41c","stroke-width":2,"description":"Drago — 39 victories since 1633. Last won 2022-07-02. 8 races waiting. No standing rival.","colour_a":"#b23a48","colour_b":"#2e8b57","colour_trim":"#efc41c","colours":"antique rose and green, trimmed yellow","fill_mode":"stripe"},"geometry":{"type":"Polygon","coordinates":[[[11.32621,43.31887],[11.32684,43.31909],[11.32681,43.31915],[11.32701,43.3192],[11.32811,43.31971],[11.32899,43.31995],[11.32896,43.31999],[11.33019,43.32036],[11.33033,43.31985],[11.33021,43.31934],[11.33021,43.31922],[11.33025,43.31914],[11.33041,43.31902],[11.33078,43.31925],[11.33088,43.31937],[11.3309,43.31944],[11.33085,43.31983],[11.33079,43.32001],[11.33122,43.32008],[11.33109,43.32033],[11.33091,43.32061],[11.3301,43.32149],[11.32921,43.32216],[11.32884,43.32246],[11.32854,43.32229],[11.32827,43.3224],[11.32779,43.32228],[11.32771,43.32255],[11.32739,43.3225],[11.32727,43.32246],[11.32739,43.32223],[11.32742,43.32207],[11.32734,43.32161],[11.32697,43.32115],[11.32633,43.3205],[11.326,43.32002],[11.32544,43.32019],[11.32545,43.32021],[11.32537,43.32023],[11.32535,43.32018],[11.32573,43.32009],[11.32557,43.31976],[11.32556,43.31918],[11.32559,43.31897],[11.32588,43.31897],[11.32608,43.31901],[11.32621,43.31887]]]}},{"type":"Feature","properties":{"name":"Giraffa","name_it":"Contrada della Giraffa","key":"giraffa","wins":35,"runs_since_1762":324,"last_win":"2019-07-02","races_waiting":10,"rivals":[],"in_field_2026_08_16":true,"fill":"#c0392b","fill-opacity":0.45,"stroke":"#c0392b","stroke-width":2,"description":"Giraffa — 35 victories since 1633. Last won 2019-07-02. 10 races waiting. No standing rival.","colour_a":"#c0392b","colour_b":"#f7f3ea","colour_trim":"#c0392b","colours":"red and white","fill_mode":"stripe"},"geometry":{"type":"Polygon","coordinates":[[[11.33362,43.32196],[11.33366,43.32199],[11.33408,43.32171],[11.33432,43.32177],[11.3345,43.32202],[11.33447,43.32204],[11.3345,43.32202],[11.33453,43.32205],[11.33449,43.32207],[11.33482,43.32237],[11.33499,43.32228],[11.33523,43.32246],[11.33521,43.32247],[11.33528,43.32253],[11.33548,43.32294],[11.33627,43.32235],[11.33632,43.32238],[11.33634,43.32235],[11.33628,43.32232],[11.33664,43.32156],[11.33649,43.32142],[11.3363,43.32154],[11.33614,43.32156],[11.3361,43.32161],[11.33591,43.32147],[11.33581,43.32144],[11.33563,43.32143],[11.33541,43.32146],[11.33495,43.32136],[11.33467,43.3214],[11.33439,43.32149],[11.33411,43.32122],[11.33403,43.32106],[11.33404,43.32099],[11.33418,43.3208],[11.33427,43.32041],[11.33422,43.3204],[11.33428,43.32026],[11.33381,43.32006],[11.33328,43.31976],[11.33263,43.31997],[11.33185,43.32048],[11.33171,43.32094],[11.33167,43.32102],[11.33152,43.32112],[11.33195,43.32152],[11.33233,43.32176],[11.33273,43.32189],[11.3332,43.32197],[11.33362,43.32196]]]}},{"type":"Feature","properties":{"name":"Istrice","name_it":"Contrada dell'Istrice","key":"istrice","wins":38,"runs_since_1762":307,"last_win":"2008-07-02","races_waiting":33,"rivals":["Lupa"],"in_field_2026_08_16":true,"fill":"#f7f3ea","fill-opacity":0.45,"stroke":"#c0392b","stroke-width":2,"description":"Istrice — 38 victories since 1633. Last won 2008-07-02. 33 races waiting. Rival: Lupa.","colour_a":"#f7f3ea","colour_b":"#f7f3ea","colour_trim":"#c0392b","colours":"white, trimmed red, black and blue","fill_mode":"solid"},"geometry":{"type":"Polygon","coordinates":[[[11.32537,43.32022],[11.32545,43.32021],[11.32544,43.32019],[11.326,43.32002],[11.32633,43.3205],[11.32697,43.32115],[11.32736,43.32165],[11.32742,43.32207],[11.32739,43.32223],[11.32727,43.32246],[11.32771,43.32255],[11.32779,43.32228],[11.32827,43.3224],[11.32854,43.32229],[11.32884,43.32246],[11.3287,43.32264],[11.32836,43.32321],[11.32807,43.32358],[11.32803,43.32372],[11.32813,43.32379],[11.3285,43.3243],[11.32871,43.32446],[11.32913,43.32468],[11.32971,43.32482],[11.33021,43.32481],[11.33155,43.32465],[11.33187,43.32467],[11.33201,43.32475],[11.33114,43.32506],[11.33039,43.32539],[11.32969,43.32567],[11.32895,43.32611],[11.32858,43.32624],[11.32862,43.32632],[11.32842,43.32642],[11.32812,43.32645],[11.32777,43.32656],[11.32751,43.32658],[11.32741,43.32669],[11.32708,43.32688],[11.32675,43.32697],[11.32672,43.32695],[11.32656,43.32701],[11.32631,43.32716],[11.32625,43.32726],[11.32627,43.32727],[11.32613,43.32741],[11.32605,43.32759],[11.32585,43.32778],[11.32543,43.32769],[11.32519,43.32755],[11.32495,43.3272],[11.32485,43.3268],[11.32485,43.32669],[11.32489,43.32657],[11.32527,43.32617],[11.3259,43.3258],[11.32606,43.32565],[11.32599,43.32562],[11.32603,43.32557],[11.32608,43.32558],[11.32628,43.3253],[11.32663,43.32467],[11.32577,43.32436],[11.32568,43.32437],[11.32531,43.32425],[11.32522,43.32416],[11.32524,43.32404],[11.32542,43.32367],[11.32525,43.32363],[11.32484,43.32364],[11.32398,43.32347],[11.32383,43.32337],[11.32379,43.32323],[11.32407,43.32315],[11.32408,43.32317],[11.32432,43.3231],[11.32532,43.32304],[11.32461,43.32236],[11.32449,43.32239],[11.3245,43.32249],[11.32442,43.32252],[11.32376,43.32153],[11.32384,43.3215],[11.32394,43.32156],[11.32405,43.32151],[11.32378,43.32073],[11.32425,43.32046],[11.32447,43.32037],[11.32452,43.32042],[11.32537,43.32022]]]}},{"type":"Feature","properties":{"name":"Leocorno","name_it":"Contrada del Leocorno","key":"leocorno","wins":29,"runs_since_1762":324,"last_win":"2022-08-17","races_waiting":7,"rivals":["Civetta"],"in_field_2026_08_16":false,"fill":"#f7f3ea","fill-opacity":0.45,"stroke":"#2f5fa8","stroke-width":2,"description":"Leocorno — 29 victories since 1633. Last won 2022-08-17. 7 races waiting. Rival: Civetta.","colour_a":"#f7f3ea","colour_b":"#e07b28","colour_trim":"#2f5fa8","colours":"white and orange, trimmed blue","fill_mode":"stripe"},"geometry":{"type":"Polygon","coordinates":[[[11.33647,43.31732],[11.33623,43.31744],[11.33641,43.31766],[11.33628,43.31772],[11.33645,43.31791],[11.33672,43.31848],[11.33639,43.31883],[11.33798,43.31966],[11.33672,43.3214],[11.33679,43.32142],[11.33679,43.32144],[11.33672,43.32142],[11.33664,43.32156],[11.33649,43.32142],[11.3363,43.32154],[11.33614,43.32156],[11.3361,43.32161],[11.33591,43.32147],[11.33581,43.32144],[11.33563,43.32143],[11.33541,43.32146],[11.33495,43.32136],[11.33467,43.3214],[11.33439,43.32149],[11.33411,43.32122],[11.33403,43.32106],[11.33404,43.32099],[11.33418,43.3208],[11.33427,43.32041],[11.33422,43.3204],[11.33428,43.32026],[11.33381,43.32006],[11.33328,43.31976],[11.33299,43.31985],[11.33293,43.3196],[11.33283,43.31954],[11.33258,43.31915],[11.33341,43.31887],[11.33353,43.31859],[11.3335,43.3185],[11.33341,43.3184],[11.33392,43.31809],[11.33517,43.31747],[11.33592,43.31699],[11.33639,43.31678],[11.33684,43.31697],[11.33695,43.31711],[11.33647,43.31732]]]}},{"type":"Feature","properties":{"name":"Lupa","name_it":"Contrada della Lupa","key":"lupa","wins":38,"runs_since_1762":317,"last_win":"2024-08-17","races_waiting":3,"rivals":["Istrice"],"in_field_2026_08_16":true,"fill":"#f7f3ea","fill-opacity":0.45,"stroke":"#e07b28","stroke-width":2,"description":"Lupa — 38 victories since 1633. Last won 2024-08-17. 3 races waiting. Rival: Istrice.","colour_a":"#f7f3ea","colour_b":"#141414","colour_trim":"#e07b28","colours":"white and black, trimmed orange","fill_mode":"stripe"},"geometry":{"type":"Polygon","coordinates":[[[11.32975,43.32176],[11.32921,43.32216],[11.32884,43.32246],[11.3287,43.32264],[11.32836,43.32321],[11.32807,43.32358],[11.32803,43.32372],[11.32813,43.32379],[11.3285,43.3243],[11.32878,43.32451],[11.32903,43.32464],[11.32943,43.32477],[11.32971,43.32482],[11.33021,43.32481],[11.33155,43.32465],[11.33187,43.32467],[11.33201,43.32475],[11.33235,43.32462],[11.33241,43.32456],[11.3326,43.324],[11.33269,43.3239],[11.33276,43.32377],[11.33273,43.32376],[11.33276,43.3237],[11.33235,43.32353],[11.33132,43.32274],[11.33076,43.32216],[11.33051,43.32196],[11.33096,43.3218],[11.3307,43.32169],[11.33072,43.32167],[11.3306,43.32161],[11.33039,43.32145],[11.33043,43.3214],[11.33029,43.3213],[11.32999,43.3216],[11.32975,43.32176]]]}},{"type":"Feature","properties":{"name":"Nicchio","name_it":"Contrada del Nicchio","key":"nicchio","wins":44,"runs_since_1762":313,"last_win":"1998-08-16","races_waiting":53,"rivals":["Valdimontone"],"in_field_2026_08_16":true,"fill":"#2f5fa8","fill-opacity":0.45,"stroke":"#c0392b","stroke-width":2,"description":"Nicchio — 44 victories since 1633. Last won 1998-08-16. 53 races waiting. Rival: Valdimontone.","colour_a":"#2f5fa8","colour_b":"#2f5fa8","colour_trim":"#c0392b","colours":"blue, trimmed red and yellow","fill_mode":"solid"},"geometry":{"type":"Polygon","coordinates":[[[11.34227,43.31724],[11.34231,43.31742],[11.34233,43.31742],[11.3421,43.31804],[11.34173,43.31862],[11.34148,43.31893],[11.34043,43.31839],[11.33994,43.31828],[11.33912,43.3182],[11.33877,43.3184],[11.33742,43.31856],[11.33755,43.31877],[11.33767,43.31921],[11.338,43.31963],[11.33798,43.31966],[11.33639,43.31883],[11.33672,43.31848],[11.33645,43.31791],[11.33628,43.31772],[11.33641,43.31766],[11.33623,43.31744],[11.33682,43.31715],[11.33823,43.3167],[11.33848,43.31656],[11.33872,43.31635],[11.33898,43.31649],[11.33924,43.31673],[11.33946,43.31683],[11.3397,43.31663],[11.33974,43.31663],[11.33987,43.31643],[11.34005,43.3164],[11.34049,43.31615],[11.34081,43.31641],[11.34154,43.31566],[11.34172,43.3156],[11.34195,43.31639],[11.342,43.31638],[11.34227,43.31724]]]}},{"type":"Feature","properties":{"name":"Oca","name_it":"Contrada dell'Oca","key":"oca","wins":65,"runs_since_1762":309,"last_win":"2025-07-03","races_waiting":2,"rivals":["Torre"],"in_field_2026_08_16":true,"fill":"#2e8b57","fill-opacity":0.45,"stroke":"#c0392b","stroke-width":2,"description":"Oca — 65 victories since 1633. Last won 2025-07-03. 2 races waiting. Rival: Torre.","colour_a":"#2e8b57","colour_b":"#2e8b57","colour_trim":"#c0392b","colours":"green, trimmed white and red","fill_mode":"solid"},"geometry":{"type":"Polygon","coordinates":[[[11.32621,43.31887],[11.32684,43.31909],[11.32681,43.31915],[11.32701,43.3192],[11.32811,43.31971],[11.32899,43.31995],[11.32896,43.31999],[11.33019,43.32036],[11.33033,43.31987],[11.3302,43.31929],[11.33022,43.31919],[11.33028,43.31911],[11.32981,43.31882],[11.32971,43.31863],[11.32931,43.31872],[11.32844,43.31907],[11.32799,43.31909],[11.32783,43.31896],[11.32768,43.31887],[11.3277,43.31887],[11.32751,43.31865],[11.32741,43.31859],[11.32705,43.31821],[11.32694,43.31828],[11.32688,43.31824],[11.32668,43.31832],[11.32621,43.31887]]]}},{"type":"Feature","properties":{"name":"Onda","name_it":"Contrada dell'Onda","key":"onda","wins":45,"runs_since_1762":310,"last_win":"2024-07-04","races_waiting":4,"rivals":["Torre"],"in_field_2026_08_16":true,"fill":"#f7f3ea","fill-opacity":0.45,"stroke":"#6fb7e0","stroke-width":2,"description":"Onda — 45 victories since 1633. Last won 2024-07-04. 4 races waiting. Rival: Torre.","colour_a":"#f7f3ea","colour_b":"#6fb7e0","colour_trim":"#6fb7e0","colours":"white and light blue","fill_mode":"stripe"},"geometry":{"type":"Polygon","coordinates":[[[11.33068,43.31476],[11.33054,43.31498],[11.33044,43.31521],[11.33053,43.31545],[11.33051,43.31555],[11.32985,43.3163],[11.33001,43.31644],[11.33054,43.31629],[11.33079,43.31654],[11.33142,43.31702],[11.33151,43.31715],[11.3315,43.31735],[11.3313,43.3179],[11.33132,43.31793],[11.33157,43.31803],[11.33191,43.31764],[11.33216,43.31774],[11.33242,43.31742],[11.33262,43.31714],[11.3327,43.31685],[11.33274,43.3168],[11.33281,43.31676],[11.33294,43.31675],[11.33303,43.31668],[11.33318,43.31667],[11.33332,43.31662],[11.33343,43.31646],[11.33334,43.31633],[11.33305,43.3164],[11.33273,43.31616],[11.33261,43.31623],[11.33255,43.31619],[11.33271,43.31611],[11.33245,43.3158],[11.33251,43.31577],[11.33235,43.31561],[11.3323,43.31562],[11.33218,43.31551],[11.33219,43.31534],[11.33203,43.31522],[11.33232,43.31498],[11.33197,43.31509],[11.33178,43.31528],[11.33073,43.31471],[11.33068,43.31476]]]}},{"type":"Feature","properties":{"name":"Pantera","name_it":"Contrada della Pantera","key":"pantera","wins":25,"runs_since_1762":324,"last_win":"2006-07-02","races_waiting":37,"rivals":["Aquila"],"in_field_2026_08_16":false,"fill":"#c0392b","fill-opacity":0.45,"stroke":"#f7f3ea","stroke-width":2,"description":"Pantera — 25 victories since 1633. Last won 2006-07-02. 37 races waiting. Rival: Aquila.","colour_a":"#c0392b","colour_b":"#6fb7e0","colour_trim":"#f7f3ea","colours":"red and light blue, trimmed white","fill_mode":"stripe"},"geometry":{"type":"Polygon","coordinates":[[[11.3263,43.31718],[11.32847,43.31629],[11.32876,43.31633],[11.32895,43.31619],[11.32904,43.31621],[11.32905,43.31614],[11.32916,43.31613],[11.32923,43.31631],[11.32956,43.31625],[11.32985,43.3163],[11.33049,43.31557],[11.33053,43.31545],[11.33049,43.31536],[11.33034,43.31536],[11.33028,43.31525],[11.32953,43.31503],[11.32925,43.31511],[11.32902,43.31536],[11.32845,43.31502],[11.32809,43.31489],[11.32809,43.31467],[11.32804,43.31446],[11.32804,43.31433],[11.32786,43.31433],[11.32752,43.31411],[11.32733,43.31424],[11.32714,43.31424],[11.32671,43.31389],[11.32652,43.31382],[11.32627,43.31422],[11.32577,43.31399],[11.32595,43.3136],[11.32595,43.31336],[11.32568,43.31299],[11.32585,43.313],[11.32587,43.31308],[11.32627,43.31298],[11.32585,43.31271],[11.32623,43.31238],[11.326,43.31226],[11.3259,43.31237],[11.32583,43.31234],[11.3258,43.31237],[11.32573,43.31233],[11.32581,43.31225],[11.32557,43.31218],[11.32573,43.31201],[11.32512,43.31194],[11.3251,43.3122],[11.3255,43.31287],[11.32588,43.31334],[11.32587,43.31359],[11.32573,43.31394],[11.32543,43.31424],[11.32529,43.31432],[11.32455,43.31445],[11.32409,43.31507],[11.324,43.31503],[11.32392,43.31513],[11.32403,43.3152],[11.3241,43.31516],[11.32594,43.31661],[11.32618,43.31694],[11.3263,43.31718]]]}},{"type":"Feature","properties":{"name":"Selva","name_it":"Contrada della Selva","key":"selva","wins":40,"runs_since_1762":307,"last_win":"2023-07-02","races_waiting":6,"rivals":[],"in_field_2026_08_16":true,"fill":"#2e8b57","fill-opacity":0.45,"stroke":"#f7f3ea","stroke-width":2,"description":"Selva — 40 victories since 1633. Last won 2023-07-02. 6 races waiting. No standing rival.","colour_a":"#2e8b57","colour_b":"#e07b28","colour_trim":"#f7f3ea","colours":"green and orange, trimmed white","fill_mode":"stripe"},"geometry":{"type":"Polygon","coordinates":[[[11.32799,43.31909],[11.32844,43.31907],[11.32931,43.31872],[11.32971,43.31863],[11.32981,43.31882],[11.33028,43.31911],[11.33077,43.3188],[11.33061,43.3186],[11.33058,43.31849],[11.33097,43.31846],[11.331,43.31836],[11.33126,43.318],[11.33087,43.31787],[11.33046,43.31782],[11.33029,43.31795],[11.33007,43.31803],[11.32985,43.31788],[11.32948,43.3178],[11.32925,43.31755],[11.32935,43.3175],[11.32891,43.31704],[11.32819,43.31642],[11.3263,43.31718],[11.32645,43.3175],[11.3262,43.31758],[11.32621,43.3177],[11.32645,43.318],[11.32681,43.31799],[11.32688,43.31824],[11.32694,43.31828],[11.32705,43.31821],[11.32741,43.31859],[11.32751,43.31865],[11.3277,43.31887],[11.32768,43.31887],[11.32783,43.31896],[11.32799,43.31909]]]}},{"type":"Feature","properties":{"name":"Tartuca","name_it":"Contrada della Tartuca","key":"tartuca","wins":48,"runs_since_1762":322,"last_win":"2018-10-20","races_waiting":11,"rivals":["Chiocciola"],"in_field_2026_08_16":false,"fill":"#efc41c","fill-opacity":0.45,"stroke":"#2f5fa8","stroke-width":2,"description":"Tartuca — 48 victories since 1633. Last won 2018-10-20. 11 races waiting. Rival: Chiocciola.","colour_a":"#efc41c","colour_b":"#2f5fa8","colour_trim":"#2f5fa8","colours":"yellow and blue","fill_mode":"stripe"},"geometry":{"type":"Polygon","coordinates":[[[11.33309,43.31172],[11.33564,43.31225],[11.33554,43.31259],[11.33544,43.31315],[11.33539,43.31316],[11.33536,43.31331],[11.33527,43.3133],[11.33521,43.31355],[11.33513,43.3136],[11.33513,43.31389],[11.33499,43.31425],[11.33481,43.31445],[11.33481,43.31454],[11.33425,43.31482],[11.33309,43.31474],[11.332,43.31508],[11.33178,43.31528],[11.33073,43.31471],[11.33059,43.31488],[11.33045,43.31517],[11.33045,43.31526],[11.33049,43.31536],[11.33034,43.31536],[11.33028,43.31525],[11.32964,43.31505],[11.32951,43.31503],[11.32925,43.31511],[11.32902,43.31536],[11.32845,43.31502],[11.32808,43.31488],[11.32809,43.31467],[11.32804,43.31446],[11.32804,43.31433],[11.32817,43.31434],[11.32872,43.31456],[11.32883,43.31418],[11.32882,43.31399],[11.32955,43.3131],[11.32957,43.31236],[11.32999,43.31131],[11.33159,43.31141],[11.3328,43.31166],[11.33279,43.31168],[11.33309,43.31172]]]}},{"type":"Feature","properties":{"name":"Torre","name_it":"Contrada della Torre","key":"torre","wins":42,"runs_since_1762":319,"last_win":"2015-07-02","races_waiting":19,"rivals":["Oca","Onda"],"in_field_2026_08_16":true,"fill":"#9b1b30","fill-opacity":0.45,"stroke":"#f7f3ea","stroke-width":2,"description":"Torre — 42 victories since 1633. Last won 2015-07-02. 19 races waiting. Rival: Oca, Onda.","colour_a":"#9b1b30","colour_b":"#9b1b30","colour_trim":"#f7f3ea","colours":"crimson, trimmed white and blue","fill_mode":"solid"},"geometry":{"type":"Polygon","coordinates":[[[11.33157,43.31803],[11.33191,43.31764],[11.33216,43.31774],[11.33242,43.31742],[11.33262,43.31714],[11.3327,43.31685],[11.33364,43.3173],[11.33414,43.31709],[11.33483,43.31685],[11.33519,43.31678],[11.33597,43.31654],[11.3361,43.31655],[11.33646,43.3167],[11.33639,43.31678],[11.33585,43.31703],[11.33534,43.31737],[11.33495,43.31759],[11.33392,43.31809],[11.33349,43.31835],[11.33341,43.3184],[11.3335,43.3185],[11.33353,43.31859],[11.33341,43.31887],[11.33267,43.31912],[11.33246,43.31864],[11.33179,43.31815],[11.33157,43.31803]]]}},{"type":"Feature","properties":{"name":"Valdimontone","name_it":"Contrada di Valdimontone","key":"montone","wins":44,"runs_since_1762":323,"last_win":"2025-08-16","races_waiting":1,"rivals":["Nicchio"],"in_field_2026_08_16":false,"fill":"#c0392b","fill-opacity":0.45,"stroke":"#f7f3ea","stroke-width":2,"description":"Valdimontone — 44 victories since 1633. Last won 2025-08-16. 1 races waiting. Rival: Nicchio.","colour_a":"#c0392b","colour_b":"#efc41c","colour_trim":"#f7f3ea","colours":"red and yellow, trimmed white","fill_mode":"stripe"},"geometry":{"type":"Polygon","coordinates":[[[11.33564,43.31225],[11.33554,43.31259],[11.33544,43.31315],[11.33539,43.31316],[11.33536,43.31331],[11.33527,43.3133],[11.33521,43.31355],[11.33513,43.3136],[11.33513,43.31389],[11.33499,43.31425],[11.33481,43.31445],[11.33481,43.31454],[11.33425,43.31482],[11.33309,43.31474],[11.33232,43.31498],[11.33203,43.31522],[11.33219,43.31534],[11.33218,43.31551],[11.3323,43.31562],[11.33235,43.31561],[11.33251,43.31577],[11.33245,43.3158],[11.33271,43.31611],[11.33255,43.31619],[11.3326,43.31623],[11.33273,43.31616],[11.33305,43.3164],[11.33334,43.31633],[11.33343,43.31646],[11.33332,43.31662],[11.33318,43.31667],[11.33303,43.31668],[11.33294,43.31675],[11.33281,43.31676],[11.3327,43.31685],[11.3333,43.31711],[11.33364,43.3173],[11.33414,43.31709],[11.33483,43.31685],[11.33604,43.31654],[11.33646,43.3167],[11.33639,43.31678],[11.33684,43.31697],[11.33695,43.31711],[11.33823,43.3167],[11.33848,43.31656],[11.33872,43.31635],[11.33898,43.31649],[11.33924,43.31673],[11.33946,43.31683],[11.3397,43.31663],[11.33974,43.31663],[11.33987,43.31643],[11.34005,43.3164],[11.34049,43.31615],[11.34081,43.31641],[11.34154,43.31566],[11.34172,43.3156],[11.34159,43.31514],[11.34019,43.31361],[11.33961,43.31339],[11.33931,43.31341],[11.33665,43.31251],[11.33564,43.31225]]]}}]};
+  try { window.GEO = GEO; } catch(e){}   // the sheet map reads it too
 
   function build(){
     var card = document.getElementById('contradaMap');
@@ -5005,6 +5024,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
       +   '<label>Fill <input type="range" min="0" max="80" value="38" id="mapOp">'
       +   '<span id="mapOpV">38%</span></label>'
       + '</div>'
+      + '<div class="pairs" id="mapPairs"></div>'
       + '<div class="realmap" id="realmap"></div>'
       + '<p class="note">Boundaries from OpenStreetMap, &copy; OpenStreetMap contributors, '
       + '<a href="https://opendatacommons.org/licenses/odbl/" target="_blank" rel="noopener">ODbL</a>, '
@@ -5088,8 +5108,13 @@ svg.leaflet-image-layer.leaflet-interactive path {
           + '<br><br><a href="#" data-sheet="'+idx+'">Full record &rarr;</a>');
         layer.on('mouseover',function(){ layer.setStyle({weight:4,color:'#fff'});
                                          paint(layer,p,Math.min(.85,FILL+.22)); layer.bringToFront(); });
-        layer.on('mouseout', function(){ geo.resetStyle(layer);
-                                         paint(layer,p, layer._dim ? .06 : FILL); });
+        layer.on('mouseout', function(){
+        geo.resetStyle(layer);
+        // Restore whichever tier this contrada is currently in.
+        paint(layer, p, layer._tier === 'context' ? Math.max(.20, FILL*0.75)
+                      : layer._tier === 'faded'   ? .05
+                      : FILL);
+      });
       }
     }).addTo(map);
 
@@ -5114,12 +5139,53 @@ svg.leaflet-image-layer.leaflet-interactive path {
       card.querySelectorAll('.mapbar button').forEach(function(b){ b.classList.toggle('on', b===btn); });
       GEO.features.forEach(function(f){
         var p=f.properties, l=layers[p.key], on=test(p);
-        l._dim=!on; l.setStyle({opacity:on?.95:.2}); paint(l,p,on?FILL:.06);
+        l._dim=!on; l._tier = on ? 'emphasis' : 'faded';
+        l.setStyle({opacity:on?.95:.2, weight:2}); paint(l,p,on?FILL:.06);
       });
     }
-    card.querySelector('[data-v="all"]').onclick    = function(){ view(function(){return true;}, this); };
-    card.querySelector('[data-v="field"]').onclick  = function(){ view(function(p){return p.in_field_2026_08_16;}, this); };
-    card.querySelector('[data-v="rivals"]').onclick = function(){ view(function(p){return p.rivals.length>0;}, this); };
+    function leaveRivalMode(){
+      card.classList.remove('rivalmode');
+      map.removeLayer(rivalLines);
+      focused = null;
+      card.querySelectorAll('.pair').forEach(function(c){ c.classList.remove('on'); });
+    }
+    var bAll    = card.querySelector('[data-v="all"]');
+    var bField  = card.querySelector('[data-v="field"]');
+    var bRivals = card.querySelector('[data-v="rivals"]');
+
+    // The field filter and the rivalry view are independent, so both buttons
+    // can be lit at once and the map shows the intersection.
+    function litButtons(){
+      bAll.classList.toggle('on', !fieldOnly && !card.classList.contains('rivalmode'));
+      bField.classList.toggle('on', fieldOnly);
+      bRivals.classList.toggle('on', card.classList.contains('rivalmode'));
+    }
+
+    bAll.onclick = function(){
+      fieldOnly = false; leaveRivalMode();
+      view(function(){ return true; }, this); litButtons();
+    };
+    bField.onclick = function(){
+      fieldOnly = true;
+      if(card.classList.contains('rivalmode')){
+        focusPair(null);              // stay in rivalries, narrow to the field
+      } else {
+        view(function(p){ return p.in_field_2026_08_16; }, this);
+      }
+      litButtons();
+    };
+    bRivals.onclick = function(){
+      if(card.classList.contains('rivalmode')){   // a second press turns it off
+        leaveRivalMode();
+        view(fieldOnly ? function(p){ return p.in_field_2026_08_16; }
+                       : function(){ return true; }, fieldOnly ? bField : bAll);
+      } else {
+        card.classList.add('rivalmode');
+        rivalLines.addTo(map);
+        focusPair(null);            // every rivalry in the current scope
+      }
+      litButtons();
+    };
 
     var tb = card.querySelector('#mapTheme');
     if(tb) tb.onclick = function(){ applyTheme(theme === 'dark' ? 'light' : 'dark'); };
@@ -5193,6 +5259,153 @@ svg.leaflet-image-layer.leaflet-interactive path {
     map.on('zoomend', function(){ applyNames(namesOn); });
     applyNames(namesOn);
 
+    /* --- Rivalries, drawn ---------------------------------------------------
+       Dimming the contrade without a rival showed which thirteen were involved
+       but not who faced whom — Torre dimmed nothing and told you nothing. So
+       draw the enmity itself: a line between the two territories, labelled with
+       the year it was recognised, plus a chip per pair to isolate it.
+    ------------------------------------------------------------------------ */
+    var RECOGNISED = {                       // when each enmity became official
+      'oca|torre':'1671', 'onda|torre':'1559', 'chiocciola|tartuca':'—',
+      'civetta|leocorno':'1960', 'montone|nicchio':'1952',
+      'aquila|pantera':'1947', 'istrice|lupa':'1934'
+    };
+
+    // Every live pair, once each. rivals[] names both directions, so dedupe.
+    var PAIRS = [];
+    (function(){
+      var seen = {};
+      GEO.features.forEach(function(f){
+        var p = f.properties;
+        p.rivals.forEach(function(rname){
+          var other = GEO.features.filter(function(g){ return g.properties.name === rname; })[0];
+          if(!other) return;
+          var k = [p.key, other.properties.key].sort().join('|');
+          if(seen[k]) return;
+          seen[k] = 1;
+          PAIRS.push({ key:k, a:p, b:other.properties, since:RECOGNISED[k] || '' });
+        });
+      });
+    })();
+
+    // Endpoints reuse the label placement, so a line starts and ends inside the
+    // territories rather than at a centroid that may fall outside them.
+    var centre = {};
+    GEO.features.forEach(function(f){
+      var p = labelPoint(f.geometry.coordinates[0]);
+      centre[f.properties.key] = [p[1], p[0]];
+    });
+
+    var rivalLines = L.layerGroup();
+    PAIRS.forEach(function(pr){
+      var line = L.polyline([centre[pr.a.key], centre[pr.b.key]], {
+        color:'#e0473c', weight:3, opacity:.95, dashArray:'7,6', lineCap:'round'
+      });
+      var mid = [ (centre[pr.a.key][0]+centre[pr.b.key][0])/2,
+                  (centre[pr.a.key][1]+centre[pr.b.key][1])/2 ];
+      var tip = L.tooltip({permanent:true, direction:'center', className:'rivlabel',
+                           interactive:false, opacity:1})
+                 .setLatLng(mid)
+                 .setContent(pr.a.name + ' \u2694 ' + pr.b.name +
+                             (pr.since && pr.since !== '\u2014' ? '  ' + pr.since : ''));
+      pr.line = line; pr.tip = tip;
+      rivalLines.addLayer(line); rivalLines.addLayer(tip);
+    });
+
+    // The chips.
+    var pairBox = card.querySelector('#mapPairs');
+    PAIRS.forEach(function(pr){
+      var el = document.createElement('button');
+      el.className = 'pair'; el.dataset.pair = pr.key;
+      el.innerHTML = pr.a.name + '<span class="vs">v</span>' + pr.b.name +
+                     (pr.since && pr.since !== '\u2014'
+                        ? '<span class="since">' + pr.since + '</span>'
+                        : '<span class="since">undated</span>');
+      el.onclick = function(){ focusPair(pr.key === focused ? null : pr.key); };
+      pairBox.appendChild(el);
+    });
+
+    var focused = null;              // a single pair, or null for all in scope
+    var fieldOnly = false;           // is the "in this field" filter engaged?
+
+    // Which rivalries count right now. With the field filter on, a pair only
+    // counts when BOTH contrade are running — a rivalry with one side sitting
+    // the race out has no bearing on how it will be ridden.
+    function inScope(pr){
+      if(!fieldOnly) return true;
+      return pr.a.in_field_2026_08_16 && pr.b.in_field_2026_08_16;
+    }
+
+    // A short line of context, since "three of the seven" is the interesting
+    // part and would otherwise have to be counted off the chips.
+    function pairNote(){
+      var n = PAIRS.filter(inScope).length;
+      var el = card.querySelector('.pairnote');
+      if(!el){
+        el = document.createElement('span');
+        el.className = 'pairnote';
+        card.querySelector('#mapPairs').appendChild(el);
+      }
+      el.textContent = fieldOnly
+        ? n + ' of the 7 rivalries have both contrade in this field'
+        : 'All 7 standing rivalries';
+    }
+
+    function focusPair(k){
+      focused = k;
+      card.querySelectorAll('.pair').forEach(function(c){
+        c.classList.toggle('on', c.dataset.pair === k);
+      });
+      PAIRS.forEach(function(pr){
+        var chip = card.querySelector('.pair[data-pair="' + pr.key + '"]');
+        if(chip) chip.classList.toggle('hidden', !inScope(pr));
+      });
+      pairNote();
+
+      // Which contrade are in a rivalry that is currently drawn.
+      var inRivalry = {};
+      PAIRS.forEach(function(pr){
+        var on = inScope(pr) && (!k || pr.key === k);
+        if(on){ inRivalry[pr.a.key] = 1; inRivalry[pr.b.key] = 1; }
+        pr.line.setStyle({ opacity: on ? .95 : 0 });
+        pr.tip.setOpacity(on ? 1 : 0);
+      });
+
+      /* Three tiers rather than two. Showing the rivalries should not delete
+         the rest of the race: with the field filter on, a contrada running on
+         Sunday but with no enemy in the field — Selva, Giraffa — still belongs
+         on the map. It is simply not part of the story the lines are telling,
+         so it sits back rather than disappearing.
+           emphasis  in a drawn rivalry
+           context   in the current scope, but not in one
+           faded     outside the scope entirely                              */
+      GEO.features.forEach(function(f){
+        var p = f.properties, l = layers[p.key];
+        var scoped = !fieldOnly || p.in_field_2026_08_16;
+        var hot    = !!inRivalry[p.key];
+
+        l._dim  = !hot;
+        l._tier = hot ? 'emphasis' : (scoped ? 'context' : 'faded');
+        if(hot){
+          l.setStyle({ opacity:.95, weight:3 });
+          paint(l, p, FILL);
+        } else if(scoped){
+          l.setStyle({ opacity:.85, weight:2 });
+          paint(l, p, Math.max(.20, FILL * 0.75));
+        } else {
+          l.setStyle({ opacity:.18, weight:1 });
+          paint(l, p, .05);
+        }
+      });
+      if(k){
+        var pr = PAIRS.filter(function(x){ return x.key === k; })[0];
+        try {
+          map.fitBounds(L.latLngBounds([centre[pr.a.key], centre[pr.b.key]]).pad(0.9),
+                        {maxZoom:16});
+        } catch(e){}
+      }
+    }
+
     // Expand / restore. Leaflet has to be told to re-measure after the box
     // changes size, and it keeps the current centre while doing so.
     function setExpanded(on){
@@ -5226,7 +5439,11 @@ svg.leaflet-image-layer.leaflet-interactive path {
     op.addEventListener('input', function(){
       FILL=+op.value/100; opv.textContent=op.value+'%';
       GEO.features.forEach(function(f){
-        var l=layers[f.properties.key]; paint(l,f.properties, l._dim ? .06 : FILL);
+        var l=layers[f.properties.key];
+        paint(l, f.properties,
+              l._tier === 'context' ? Math.max(.20, FILL*0.75)
+            : l._tier === 'faded'   ? .05
+            : FILL);
       });
     });
 
@@ -5254,6 +5471,237 @@ svg.leaflet-image-layer.leaflet-interactive path {
   }
 
   try { build(); } catch(e){}
+})();
+</script>
+
+
+<!-- ==========================================================================
+     SHEET MAP + STACKING FIX — 15 August 2026
+     Two things:
+       1. Leaflet numbers its own panes at z-index 400 and its controls at 800,
+          while the pop-up sheet sits at 100 — so the territory map floated over
+          the sheet. Making the map card its own stacking context keeps those
+          numbers private to it.
+       2. A small map inside each contrada sheet, showing that territory alone,
+          with toggles for its rivalries and for the rest of the city.
+     ========================================================================== -->
+<style>
+  #contradaMap{position:relative; z-index:0; isolation:isolate}
+  .modal{z-index:5000 !important}
+  #contradaMap.expanded{z-index:9999}
+
+  .sheetmapwrap{margin:14px 0 4px}
+  .sheetmap{height:260px;border-radius:10px;overflow:hidden;
+        border:1px solid var(--line);background:#0d0b09;position:relative;z-index:0}
+  .sheetbar{display:flex;gap:7px;flex-wrap:wrap;margin:0 0 8px}
+  .sheetbar button{background:#272320;color:var(--ink);border:1px solid var(--line);
+        border-radius:6px;padding:4px 10px;font:inherit;font-size:12px;cursor:pointer}
+  .sheetbar button.on{background:var(--accent,#d8a34a);color:#1a1613;font-weight:600;
+        border-color:var(--accent,#d8a34a)}
+  .sheetbar button[disabled]{opacity:.4;cursor:default}
+</style>
+<script>
+(function(){
+  'use strict';
+  if(typeof L === 'undefined' || typeof GEO === 'undefined') return;
+
+  // Label placement, again — the big map's copy lives inside its own closure.
+  function inside(pt, ring){
+    var x=pt[0], y=pt[1], hit=false;
+    for(var i=0, j=ring.length-1; i<ring.length; j=i++){
+      var xi=ring[i][0], yi=ring[i][1], xj=ring[j][0], yj=ring[j][1];
+      if(((yi>y)!==(yj>y)) && (x < (xj-xi)*(y-yi)/(yj-yi)+xi)) hit=!hit;
+    }
+    return hit;
+  }
+  function edgeDist(pt, ring){
+    var best=Infinity;
+    for(var i=0, j=ring.length-1; i<ring.length; j=i++){
+      var ax=ring[j][0], ay=ring[j][1], bx=ring[i][0], by=ring[i][1];
+      var dx=bx-ax, dy=by-ay, Ln=dx*dx+dy*dy, t=0;
+      if(Ln) t=Math.max(0, Math.min(1, ((pt[0]-ax)*dx+(pt[1]-ay)*dy)/Ln));
+      var d=Math.hypot(pt[0]-(ax+t*dx), pt[1]-(ay+t*dy));
+      if(d<best) best=d;
+    }
+    return best;
+  }
+  function labelPt(ring){
+    var xs=ring.map(function(p){return p[0];}), ys=ring.map(function(p){return p[1];});
+    var x0=Math.min.apply(null,xs), x1=Math.max.apply(null,xs);
+    var y0=Math.min.apply(null,ys), y1=Math.max.apply(null,ys);
+    var N=22, best=null, bd=-1;
+    for(var i=1;i<N;i++) for(var j=1;j<N;j++){
+      var p=[x0+(x1-x0)*i/N, y0+(y1-y0)*j/N];
+      if(!inside(p,ring)) continue;
+      var d=edgeDist(p,ring);
+      if(d>bd){ bd=d; best=p; }
+    }
+    return best || [(x0+x1)/2,(y0+y1)/2];
+  }
+  var CENTRE = {};
+  GEO.features.forEach(function(f){
+    var p = labelPt(f.geometry.coordinates[0]);
+    CENTRE[f.properties.key] = [p[1], p[0]];
+  });
+
+  var sheetMap = null;                        // only one alive at a time
+  function killSheetMap(){
+    if(sheetMap){ try { sheetMap.remove(); } catch(e){} sheetMap = null; }
+  }
+
+  function addSheetMap(idx){
+    var body = document.getElementById('modalBody');
+    if(!body || body.querySelector('.sheetmapwrap')) return;
+    var me = C[idx];
+    var mine = GEO.features.filter(function(f){ return f.properties.key === me.k; })[0];
+    if(!mine) return;
+
+    var wrap = document.createElement('div');
+    wrap.className = 'sheetmapwrap';
+    wrap.innerHTML =
+        '<div class="sheetbar">'
+      +   '<button data-s="rivals">Show rivalries</button>'
+      +   '<button data-s="others">Highlight other contrade</button>'
+      + '</div><div class="sheetmap" id="sheetmap"></div>';
+
+    // Under the opening lines, above the Rivals table.
+    var anchor = body.querySelector('.sitelink') || body.querySelector('.lede');
+    if(anchor && anchor.parentNode) anchor.parentNode.insertBefore(wrap, anchor.nextSibling);
+    else body.appendChild(wrap);
+
+    killSheetMap();
+    var m = L.map('sheetmap', { zoomControl:true, attributionControl:false });
+    sheetMap = m;
+
+    var big = document.getElementById('realmap');
+    var light = big && big.classList.contains('lightmap');
+    L.tileLayer(light
+      ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+      : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+      { maxZoom:20 }).addTo(m);
+
+    // Its own pattern ids, so they cannot collide with the big map's.
+    function defs(){
+      var svg = document.querySelector('#sheetmap .leaflet-overlay-pane svg');
+      if(!svg || svg.querySelector('defs.sh')) return;
+      var NS='http://www.w3.org/2000/svg';
+      var d=document.createElementNS(NS,'defs'); d.setAttribute('class','sh');
+      GEO.features.forEach(function(f){
+        var p=f.properties; if(p.fill_mode!=='stripe') return;
+        var pat=document.createElementNS(NS,'pattern');
+        pat.setAttribute('id','spat-'+p.key);
+        pat.setAttribute('width','12'); pat.setAttribute('height','12');
+        pat.setAttribute('patternUnits','userSpaceOnUse');
+        pat.setAttribute('patternTransform','rotate(45)');
+        var r1=document.createElementNS(NS,'rect');
+        r1.setAttribute('width','6'); r1.setAttribute('height','12'); r1.setAttribute('fill',p.colour_a);
+        var r2=document.createElementNS(NS,'rect');
+        r2.setAttribute('x','6'); r2.setAttribute('width','6'); r2.setAttribute('height','12');
+        r2.setAttribute('fill',p.colour_b);
+        pat.appendChild(r1); pat.appendChild(r2); d.appendChild(pat);
+      });
+      svg.insertBefore(d, svg.firstChild);
+    }
+    function paint(layer,p,op){
+      var el=layer._path; if(!el) return;
+      el.setAttribute('fill', p.fill_mode==='stripe' ? 'url(#spat-'+p.key+')' : p.colour_a);
+      el.setAttribute('fill-opacity', op);
+    }
+
+    var lay = {};
+    var geo = L.geoJSON(GEO, {
+      style:function(f){ return {color:f.properties.colour_trim, weight:1.5, opacity:.9, fillOpacity:0}; },
+      onEachFeature:function(f, layer){
+        lay[f.properties.key] = layer;
+        layer.bindTooltip(f.properties.name, {sticky:true});
+      }
+    }).addTo(m);
+
+    var myRivals = (mine.properties.rivals || []).map(function(n){
+      return GEO.features.filter(function(g){ return g.properties.name === n; })[0];
+    }).filter(Boolean);
+
+    var rivalGroup = L.layerGroup();
+    myRivals.forEach(function(rv){
+      L.polyline([CENTRE[me.k], CENTRE[rv.properties.key]],
+        {color:'#e0473c', weight:3, dashArray:'7,6', opacity:.95, lineCap:'round'}).addTo(rivalGroup);
+      L.tooltip({permanent:true, direction:'center', className:'rivlabel',
+                 interactive:false, opacity:1})
+        .setLatLng(CENTRE[rv.properties.key])
+        .setContent(rv.properties.name).addTo(rivalGroup);
+    });
+
+    var showRivals = false, showOthers = false;
+
+    function draw(){
+      defs();
+      GEO.features.forEach(function(f){
+        var p=f.properties, l=lay[p.key];
+        var isMe = p.key === me.k;
+        var isRival = showRivals && myRivals.some(function(r){ return r.properties.key===p.key; });
+        if(isMe){            l.setStyle({opacity:1,  weight:3});   paint(l,p,.62); }
+        else if(isRival){    l.setStyle({opacity:.9, weight:2});   paint(l,p,.42); }
+        else if(showOthers){ l.setStyle({opacity:.55, weight:1.2}); paint(l,p,.18); }
+        // The default. Not hidden — a faint wash and a thin border, enough to
+        // draw the shape of Siena around the contrada without competing with
+        // it. Hiding them entirely left the territory floating with nothing to
+        // place it against.
+        else {               l.setStyle({opacity:.3, weight:1});   paint(l,p,.05); }
+      });
+      if(showRivals && myRivals.length) rivalGroup.addTo(m); else m.removeLayer(rivalGroup);
+
+      // Framing. By default sit close to the contrada but leave room for its
+      // neighbours; open right out when the whole city is asked for.
+      var box;
+      if(showOthers){
+        box = geo.getBounds();
+      } else {
+        box = lay[me.k].getBounds();
+        if(showRivals) myRivals.forEach(function(r){ box = box.extend(lay[r.properties.key].getBounds()); });
+        box = box.pad(0.45);
+      }
+      try { m.fitBounds(box, {padding:[12,12]}); } catch(e){}
+    }
+
+    var rb = wrap.querySelector('[data-s="rivals"]');
+    var ob = wrap.querySelector('[data-s="others"]');
+    if(!myRivals.length){
+      rb.disabled = true;
+      rb.textContent = 'No standing rival';
+    } else {
+      rb.onclick = function(){ showRivals=!showRivals; rb.classList.toggle('on',showRivals);
+                               rb.textContent = showRivals ? 'Hide rivalries' : 'Show rivalries';
+                               draw(); };
+    }
+    ob.onclick = function(){ showOthers=!showOthers; ob.classList.toggle('on',showOthers);
+                             ob.textContent = showOthers ? 'Dim other contrade'
+                                                         : 'Highlight other contrade';
+                             draw(); };
+
+    draw();
+    // The sheet animates in, so measure once it has settled.
+    setTimeout(function(){ m.invalidateSize(); draw(); }, 140);
+  }
+
+  // Wrap last, so the map is added after the other sheet sections exist.
+  try {
+    var orig = window.showContrada;
+    if(typeof orig === 'function'){
+      window.showContrada = function(idx){
+        killSheetMap();
+        var r = orig.apply(this, arguments);
+        try { addSheetMap(idx); } catch(e){}
+        return r;
+      };
+    }
+  } catch(e){}
+
+  // Never leave a live Leaflet instance behind when the sheet closes.
+  var modal = document.getElementById('modal');
+  if(modal) modal.addEventListener('click', function(e){
+    if(e.target === modal || e.target.id === 'modalClose') killSheetMap();
+  }, true);
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape') killSheetMap(); });
 })();
 </script>
 
