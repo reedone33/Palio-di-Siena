@@ -5499,6 +5499,12 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .sheetbar button.on{background:var(--accent,#d8a34a);color:#1a1613;font-weight:600;
         border-color:var(--accent,#d8a34a)}
   .sheetbar button[disabled]{opacity:.4;cursor:default}
+  .sheetslide{display:flex;align-items:center;gap:7px;font-size:12px;
+        color:var(--muted,#a9a096);margin-left:auto}
+  .sheetslide input[type=range]{width:96px;accent-color:var(--accent,#d8a34a)}
+  /* Several contrade are trimmed in white, which vanishes on a pale basemap. */
+  .sheetmap.lightmap{background:#eae6df}
+  .sheetmap.lightmap .leaflet-overlay-pane{filter:drop-shadow(0 0 1px rgba(0,0,0,.75))}
 </style>
 <script>
 (function(){
@@ -5562,6 +5568,10 @@ svg.leaflet-image-layer.leaflet-interactive path {
         '<div class="sheetbar">'
       +   '<button data-s="rivals">Show rivalries</button>'
       +   '<button data-s="others">Highlight other contrade</button>'
+      +   '<button data-s="theme">Light map</button>'
+      +   '<label class="sheetslide">Fill '
+      +     '<input type="range" min="0" max="80" value="62" id="sheetOp">'
+      +     '<span id="sheetOpV">62%</span></label>'
       + '</div><div class="sheetmap" id="sheetmap"></div>';
 
     // Under the opening lines, above the Rivals table.
@@ -5632,6 +5642,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
     });
 
     var showRivals = false, showOthers = false;
+    var SFILL = 0.62;                       // driven by the sheet's own slider
 
     function draw(){
       defs();
@@ -5639,9 +5650,11 @@ svg.leaflet-image-layer.leaflet-interactive path {
         var p=f.properties, l=lay[p.key];
         var isMe = p.key === me.k;
         var isRival = showRivals && myRivals.some(function(r){ return r.properties.key===p.key; });
-        if(isMe){            l.setStyle({opacity:1,  weight:3});   paint(l,p,.62); }
-        else if(isRival){    l.setStyle({opacity:.9, weight:2});   paint(l,p,.42); }
-        else if(showOthers){ l.setStyle({opacity:.55, weight:1.2}); paint(l,p,.18); }
+        // The three levels scale together off the slider, so the selected
+        // contrada always reads ahead of its rivals, and both ahead of the city.
+        if(isMe){            l.setStyle({opacity:1,  weight:3});   paint(l,p,SFILL); }
+        else if(isRival){    l.setStyle({opacity:.9, weight:2});   paint(l,p,SFILL*0.68); }
+        else if(showOthers){ l.setStyle({opacity:.55, weight:1.2}); paint(l,p,SFILL*0.29); }
         // The default. Not hidden — a faint wash and a thin border, enough to
         // draw the shape of Siena around the contrada without competing with
         // it. Hiding them entirely left the territory floating with nothing to
@@ -5677,6 +5690,41 @@ svg.leaflet-image-layer.leaflet-interactive path {
                              ob.textContent = showOthers ? 'Dim other contrade'
                                                          : 'Highlight other contrade';
                              draw(); };
+
+    // Light / dark, sharing the same stored preference as the big map so the
+    // two never disagree about which basemap the reader wants.
+    var tilesLayer = null;
+    m.eachLayer(function(l){ if(l instanceof L.TileLayer) tilesLayer = l; });
+    var SHTILES = {
+      dark:  'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+      light: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+    };
+    var sTheme = light ? 'light' : 'dark';
+    var tb2 = wrap.querySelector('[data-s="theme"]');
+    function applySheetTheme(t){
+      sTheme = t;
+      if(tilesLayer) tilesLayer.setUrl(SHTILES[t]);
+      document.getElementById('sheetmap').classList.toggle('lightmap', t === 'light');
+      tb2.textContent = (t === 'dark' ? 'Light map' : 'Dark map');
+      tb2.classList.toggle('on', t === 'light');
+      try { localStorage.setItem('palioMapTheme', t); } catch(e){}
+      // Keep the big map in step if it is already built.
+      var bigMap = document.getElementById('realmap');
+      if(bigMap){
+        var btn = document.getElementById('mapTheme');
+        if(btn && ((t === 'light') !== bigMap.classList.contains('lightmap'))) btn.click();
+      }
+    }
+    tb2.onclick = function(){ applySheetTheme(sTheme === 'dark' ? 'light' : 'dark'); };
+    applySheetTheme(sTheme);
+
+    var sop = wrap.querySelector('#sheetOp'), sopv = wrap.querySelector('#sheetOpV');
+    sop.value = Math.round(SFILL * 100); sopv.textContent = sop.value + '%';
+    sop.addEventListener('input', function(){
+      SFILL = +sop.value / 100;
+      sopv.textContent = sop.value + '%';
+      draw();
+    });
 
     draw();
     // The sheet animates in, so measure once it has settled.
