@@ -5036,6 +5036,9 @@ svg.leaflet-image-layer.leaflet-interactive path {
     var FILL = 0.38;
     var map = L.map('realmap', { zoomControl:true, attributionControl:true })
                .setView([43.3181, 11.3316], 15);
+    // Exposed so the second-reading boundary overlay, appended later in this
+    // file, can add its own layer to this same map.
+    try { window.PALIO_MAP = map; } catch(e){}
 
     // Two basemaps, same provider and projection, so switching is instant and
     // nothing moves. The choice is remembered for next time.
@@ -5582,6 +5585,9 @@ svg.leaflet-image-layer.leaflet-interactive path {
     killSheetMap();
     var m = L.map('sheetmap', { zoomControl:true, attributionControl:false });
     sheetMap = m;
+    // Exposed for the places layer, appended later in this file. Reset on every
+    // open, so it always points at the map currently on screen.
+    try { window.PALIO_SHEETMAP = m; window.PALIO_SHEETKEY = me.k; } catch(e){}
 
     var big = document.getElementById('realmap');
     var light = big && big.classList.contains('lightmap');
@@ -5924,6 +5930,351 @@ svg.leaflet-image-layer.leaflet-interactive path {
     NEWS.items.length = 0;
     FRESH.forEach(function(i){ NEWS.items.push(i); });
   } catch(e){}
+})();
+</script>
+
+<!-- ==========================================================================
+     v23 — A SECOND READING OF THE BOUNDARIES
+     --------------------------------------------------------------------------
+     The territories drawn on the map come from OpenStreetMap. They are not the
+     only reading. A second, independently hand-drawn set exists on the "Siena e
+     Contrade" Google map kept by Jan-Christiaan Gilliams of thePalio.eu, and the
+     two disagree materially — most visibly at Piazza del Mercato, which OSM puts
+     wholly in Torre while the second reading runs the Torre/Onda line straight
+     through the square.
+
+     Neither is official. The boundaries are those of the 1729 Bando of Violante
+     di Baviera, held by the Comune and the Magistrato delle Contrade; every web
+     dataset is somebody's interpretation of them. So rather than pick a winner,
+     this block draws the second reading as a dashed outline you can switch on
+     over the first, and says plainly underneath that they differ.
+     ========================================================================== -->
+<style>
+  /* A separate bar, deliberately NOT class "mapbar": the view buttons clear the
+     "on" state from every .mapbar button when you switch view, which would keep
+     un-pressing this toggle. Its own class keeps it independent. */
+  #contradaMap .altbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0 0}
+  #contradaMap .altbar button{background:#272320;color:var(--ink);border:1px solid var(--line);
+        border-radius:8px;padding:6px 11px;font:inherit;font-size:12px;cursor:pointer}
+  #contradaMap .altbar button:hover{border-color:#6d6055}
+  #contradaMap .altbar button.on{background:#4fc3f7;border-color:#4fc3f7;color:#0d1b22;font-weight:600}
+  /* The little dashed swatch in the button, so the legend is the control. */
+  #contradaMap .altbar .swatch{display:inline-block;width:16px;height:0;vertical-align:middle;
+        border-top:2px dashed #4fc3f7;margin-right:7px}
+  #contradaMap .altbar button.on .swatch{border-top-color:#0d1b22}
+  #contradaMap .altnote{display:none;margin:8px 0 0;font-size:12px;line-height:1.5;
+        color:var(--muted,#a89c8e);border-left:2px solid #4fc3f7;padding-left:10px}
+  #contradaMap.altshown .altnote{display:block}
+  /* Hidden in full-screen, like the other prose. */
+  #contradaMap.expanded .altnote{display:none}
+</style>
+<script>
+(function(){
+  'use strict';
+
+  // ---- The second reading -------------------------------------------------
+  // 17 rings, [lat, lng], traced from the "Siena e Contrade" Google My Maps
+  // layer (KML export). Keys match the dashboard's own contrada keys, so
+  // Valdimontone is "montone" here as it is everywhere else.
+  var ALT = {"aquila":[[[43.31794,11.33128],[43.31785,11.33073],[43.31783,11.3305],[43.31796,11.33034],[43.31799,11.33024],[43.318,11.33008],[43.31787,11.32989],[43.31802,11.32962],[43.31776,11.32931],[43.31759,11.3295],[43.31705,11.32887],[43.31748,11.32819],[43.31732,11.32778],[43.31706,11.32756],[43.31657,11.32841],[43.31637,11.32875],[43.31614,11.32908],[43.31609,11.32966],[43.31616,11.32971],[43.31612,11.32981],[43.3158,11.32963],[43.31572,11.32983],[43.31552,11.33018],[43.31523,11.33022],[43.31528,11.33047],[43.3151,11.33059],[43.31531,11.3312],[43.31549,11.33141],[43.31558,11.33139],[43.31566,11.33127],[43.31591,11.33087],[43.31613,11.33061],[43.31627,11.3305],[43.31647,11.33073],[43.31681,11.33116],[43.31709,11.33153],[43.31739,11.33154],[43.31765,11.33139],[43.31794,11.33128]]],"bruco":[[[43.32108,11.33054],[43.32057,11.33099],[43.32076,11.33128],[43.32124,11.33175],[43.32159,11.33211],[43.32186,11.33271],[43.32191,11.33302],[43.32195,11.33366],[43.32231,11.33405],[43.3227,11.33459],[43.3232,11.33529],[43.32324,11.3349],[43.32356,11.33322],[43.32364,11.33297],[43.32368,11.33305],[43.3237,11.33301],[43.32377,11.33299],[43.32371,11.33282],[43.32338,11.33227],[43.3233,11.33213],[43.32308,11.33214],[43.3224,11.33184],[43.32205,11.33167],[43.32174,11.33115],[43.32155,11.33144],[43.32108,11.33054]]],"chiocciola":[[[43.3113,11.32965],[43.31403,11.32892],[43.31427,11.32811],[43.31457,11.32812],[43.31474,11.32811],[43.31479,11.32762],[43.31435,11.32772],[43.31414,11.3279],[43.31403,11.32795],[43.31393,11.32791],[43.31334,11.32752],[43.31294,11.32715],[43.31306,11.32653],[43.31313,11.32582],[43.31267,11.32552],[43.31218,11.32525],[43.31184,11.32525],[43.31097,11.32706],[43.3113,11.32965]]],"civetta":[[[43.31879,11.33254],[43.31911,11.33278],[43.31916,11.33263],[43.31952,11.33288],[43.31957,11.33301],[43.31988,11.33308],[43.31994,11.33289],[43.32045,11.33189],[43.32066,11.33178],[43.32099,11.33172],[43.32108,11.33161],[43.32076,11.33128],[43.32057,11.33099],[43.32053,11.33102],[43.32024,11.33023],[43.3198,11.33038],[43.31933,11.33028],[43.31927,11.33044],[43.31913,11.33026],[43.31884,11.33075],[43.31871,11.33108],[43.31889,11.33138],[43.31896,11.33157],[43.31902,11.33173],[43.31902,11.33186],[43.31889,11.33217],[43.31877,11.33251],[43.31879,11.33254]]],"drago":[[[43.32009,11.32588],[43.3197,11.32539],[43.31914,11.32554],[43.31887,11.32581],[43.31899,11.32622],[43.31892,11.32626],[43.31944,11.32739],[43.31967,11.32762],[43.32005,11.32807],[43.3201,11.32821],[43.32005,11.32837],[43.32008,11.32877],[43.32032,11.32866],[43.32036,11.32882],[43.32,11.32898],[43.32037,11.33019],[43.32024,11.33023],[43.32053,11.33102],[43.32102,11.33061],[43.32153,11.3301],[43.32185,11.32964],[43.32216,11.32925],[43.32248,11.32892],[43.32229,11.32859],[43.32206,11.32872],[43.32176,11.32795],[43.32043,11.32623],[43.32009,11.32588]]],"giraffa":[[[43.32108,11.33161],[43.32099,11.33172],[43.32064,11.33179],[43.32045,11.33189],[43.32012,11.33253],[43.31994,11.33289],[43.31977,11.33341],[43.32009,11.33389],[43.32028,11.33422],[43.32045,11.33417],[43.32048,11.33465],[43.32023,11.33571],[43.31962,11.33703],[43.31955,11.3375],[43.31963,11.33801],[43.32087,11.33724],[43.32141,11.33687],[43.32232,11.33643],[43.3232,11.33529],[43.32309,11.33517],[43.32255,11.33433],[43.32231,11.33405],[43.32222,11.33395],[43.32195,11.33366],[43.32191,11.33302],[43.32186,11.33271],[43.32159,11.33211],[43.32108,11.33161]]],"istrice":[[[43.32423,11.3284],[43.32456,11.32881],[43.32484,11.32951],[43.32489,11.32994],[43.32484,11.3304],[43.32482,11.33075],[43.32471,11.33169],[43.32484,11.33189],[43.3251,11.33117],[43.32545,11.33045],[43.32566,11.32992],[43.32613,11.329],[43.32638,11.32846],[43.32624,11.32831],[43.32651,11.3277],[43.32666,11.32754],[43.32688,11.3272],[43.32697,11.32678],[43.3271,11.32643],[43.32727,11.32629],[43.32756,11.32615],[43.32778,11.32596],[43.32766,11.32549],[43.32755,11.32527],[43.32727,11.32493],[43.32693,11.32483],[43.32658,11.32462],[43.32631,11.32431],[43.32597,11.32454],[43.32576,11.32554],[43.32554,11.32608],[43.32515,11.32621],[43.32468,11.32583],[43.32411,11.32501],[43.32388,11.32428],[43.3239,11.3234],[43.32371,11.32309],[43.32297,11.32276],[43.32294,11.32291],[43.32313,11.32303],[43.32311,11.32316],[43.32184,11.32235],[43.32188,11.32221],[43.32208,11.32234],[43.32211,11.32225],[43.3215,11.32157],[43.32142,11.32247],[43.32146,11.3225],[43.32153,11.32234],[43.32163,11.32238],[43.32126,11.3236],[43.32112,11.32352],[43.3212,11.32326],[43.32115,11.32323],[43.3205,11.32424],[43.32007,11.32584],[43.32045,11.32626],[43.32176,11.32795],[43.32206,11.32872],[43.32229,11.32859],[43.32248,11.32892],[43.32275,11.32868],[43.32365,11.32809],[43.32421,11.32842],[43.32423,11.3284]]],"leocorno":[[[43.31977,11.33341],[43.31988,11.33308],[43.31957,11.33301],[43.31952,11.33288],[43.31916,11.33263],[43.31883,11.33359],[43.31836,11.3335],[43.31781,11.3346],[43.31728,11.33558],[43.31691,11.33613],[43.31679,11.33651],[43.31701,11.33691],[43.31712,11.337],[43.31734,11.33646],[43.31761,11.33612],[43.31855,11.33743],[43.31852,11.33754],[43.31874,11.33767],[43.31917,11.33775],[43.31963,11.33806],[43.31963,11.33801],[43.31955,11.3375],[43.31962,11.33703],[43.32023,11.33571],[43.32048,11.33465],[43.32045,11.33417],[43.32028,11.33422],[43.31977,11.33341]]],"lupa":[[[43.32108,11.33054],[43.32155,11.33144],[43.32174,11.33115],[43.32205,11.33167],[43.3224,11.33184],[43.32305,11.33212],[43.3233,11.33213],[43.32361,11.33263],[43.32374,11.3329],[43.32377,11.33299],[43.32381,11.33297],[43.32382,11.33279],[43.32458,11.33261],[43.32509,11.33119],[43.32484,11.33186],[43.32472,11.33165],[43.32489,11.32994],[43.32484,11.32947],[43.32456,11.32881],[43.32423,11.32841],[43.32421,11.32843],[43.32365,11.3281],[43.32275,11.32869],[43.32248,11.32893],[43.32216,11.32925],[43.32172,11.32983],[43.32153,11.3301],[43.32108,11.33054]]],"nicchio":[[[43.31712,11.33699],[43.31693,11.33755],[43.31733,11.33786],[43.31661,11.33892],[43.3161,11.33957],[43.31628,11.34079],[43.31589,11.34136],[43.31544,11.34188],[43.31638,11.34189],[43.31717,11.34244],[43.31744,11.34246],[43.31806,11.34213],[43.31824,11.3421],[43.31893,11.34166],[43.3182,11.34018],[43.31828,11.34008],[43.31819,11.33926],[43.31837,11.33888],[43.31853,11.33753],[43.31856,11.33743],[43.31762,11.33611],[43.31735,11.33646],[43.31712,11.33699]]],"oca":[[[43.31927,11.33044],[43.31933,11.33028],[43.3198,11.33038],[43.32037,11.33018],[43.32,11.32898],[43.32036,11.32881],[43.32032,11.32866],[43.32008,11.32877],[43.32005,11.32837],[43.3201,11.32821],[43.32005,11.32807],[43.31974,11.32771],[43.31944,11.32739],[43.31892,11.32625],[43.31873,11.32631],[43.31847,11.32654],[43.3189,11.32724],[43.3191,11.32769],[43.31909,11.32819],[43.31899,11.32861],[43.31881,11.32903],[43.31868,11.32936],[43.31861,11.32969],[43.31885,11.32983],[43.31913,11.33026],[43.31927,11.33044]]],"onda":[[[43.31794,11.33128],[43.31739,11.33154],[43.31709,11.33153],[43.31684,11.3312],[43.31658,11.33088],[43.31627,11.33052],[43.31611,11.33066],[43.31596,11.33084],[43.31558,11.33139],[43.31549,11.33141],[43.31536,11.33126],[43.31529,11.33113],[43.3151,11.3306],[43.31476,11.33083],[43.31526,11.33168],[43.31499,11.33192],[43.31485,11.33243],[43.31476,11.33287],[43.31464,11.33319],[43.31432,11.33344],[43.31418,11.33322],[43.31403,11.33339],[43.31367,11.33339],[43.31323,11.33314],[43.31261,11.33244],[43.3123,11.33258],[43.31231,11.33427],[43.31199,11.33442],[43.31242,11.33627],[43.31673,11.33384],[43.31695,11.33351],[43.31678,11.33285],[43.31685,11.33274],[43.31697,11.33302],[43.31779,11.33225],[43.3177,11.33188],[43.31806,11.33161],[43.31794,11.33128]]],"pantera":[[[43.3171,11.32748],[43.31724,11.32634],[43.31679,11.32611],[43.31649,11.32593],[43.31512,11.32412],[43.31452,11.32468],[43.31437,11.32542],[43.31402,11.32584],[43.31363,11.32602],[43.31336,11.326],[43.31313,11.32584],[43.31305,11.32656],[43.31293,11.32717],[43.31333,11.32755],[43.31392,11.32793],[43.3141,11.32794],[43.31439,11.32774],[43.31481,11.32762],[43.31474,11.32811],[43.31427,11.32811],[43.31471,11.32897],[43.31502,11.32884],[43.31521,11.32917],[43.31506,11.32941],[43.31505,11.32972],[43.31521,11.33014],[43.31523,11.33022],[43.31552,11.33019],[43.31572,11.32985],[43.3158,11.32964],[43.31612,11.32982],[43.31616,11.32972],[43.31609,11.32968],[43.31614,11.32909],[43.31636,11.32878],[43.3171,11.32748]]],"selva":[[[43.31787,11.32989],[43.318,11.33008],[43.31799,11.33024],[43.31796,11.33034],[43.31783,11.33051],[43.31785,11.33073],[43.31794,11.33128],[43.31847,11.33085],[43.31871,11.33108],[43.31884,11.33075],[43.31913,11.33026],[43.31885,11.32983],[43.31862,11.32968],[43.31861,11.32969],[43.31869,11.32932],[43.31889,11.32885],[43.31906,11.32833],[43.31911,11.32787],[43.3191,11.32769],[43.31902,11.32752],[43.31884,11.32712],[43.31847,11.32654],[43.31834,11.32665],[43.31823,11.32696],[43.31798,11.32688],[43.318,11.32655],[43.31761,11.3263],[43.3175,11.32652],[43.31724,11.32634],[43.3171,11.32747],[43.3169,11.32782],[43.31706,11.32756],[43.31732,11.32778],[43.31748,11.32819],[43.31793,11.32847],[43.31819,11.32931],[43.31806,11.32954],[43.31787,11.32989]]],"tartuca":[[[43.31199,11.33442],[43.31231,11.33427],[43.3123,11.33258],[43.31261,11.33244],[43.31323,11.33314],[43.31367,11.33339],[43.31404,11.33336],[43.31418,11.33322],[43.31432,11.33344],[43.31464,11.33319],[43.31477,11.33283],[43.31499,11.33192],[43.31526,11.33168],[43.31476,11.33083],[43.31528,11.33048],[43.3152,11.33011],[43.31505,11.32971],[43.31506,11.3294],[43.31521,11.32916],[43.31502,11.32884],[43.31471,11.32897],[43.31427,11.32811],[43.31426,11.32813],[43.31403,11.32894],[43.3113,11.32967],[43.31133,11.32997],[43.31142,11.33168],[43.31199,11.33442]]],"torre":[[[43.31806,11.33261],[43.31779,11.33225],[43.31697,11.33302],[43.31685,11.33274],[43.31678,11.33285],[43.31695,11.33351],[43.31673,11.33384],[43.31681,11.33405],[43.31628,11.33636],[43.3164,11.33658],[43.3166,11.33714],[43.31696,11.33746],[43.31712,11.337],[43.31701,11.33691],[43.31679,11.33651],[43.31691,11.33613],[43.31723,11.33565],[43.3175,11.33517],[43.31784,11.33455],[43.31836,11.3335],[43.31883,11.33359],[43.31911,11.33278],[43.31879,11.33254],[43.31859,11.3324],[43.31835,11.33213],[43.31806,11.33261]]],"montone":[[[43.31673,11.33384],[43.31242,11.33627],[43.31343,11.33929],[43.31341,11.33982],[43.3136,11.34032],[43.31544,11.34188],[43.31628,11.34079],[43.3161,11.33957],[43.31733,11.33786],[43.31693,11.33756],[43.31696,11.33746],[43.31689,11.33738],[43.3166,11.33714],[43.3164,11.33658],[43.31628,11.33636],[43.31681,11.33405],[43.31673,11.33384]]]};
+
+  // Where the two readings differ enough to be worth naming in the note.
+  // Figures are measured, not estimated: shapely, WGS84 areas at Siena's
+  // latitude, comparing this set against the OSM set already on the map.
+  var HEADLINE = 'Onda';
+
+  function build(){
+    var card = document.getElementById('contradaMap');
+    var map  = window.PALIO_MAP;
+    if(!card || !map || typeof L === 'undefined') return false;
+    if(card.dataset.alt) return true;          // already done
+    card.dataset.alt = '1';
+
+    // One layer group holding all 17 outlines. No fill — this sits *over* the
+    // painted territories, so filling it would hide them.
+    var group = L.layerGroup();
+    Object.keys(ALT).forEach(function(key){
+      ALT[key].forEach(function(ring){
+        L.polygon(ring, {
+          fill: false,
+          color: '#4fc3f7',
+          weight: 2,
+          opacity: 0.95,
+          dashArray: '5,4',
+          interactive: false        // clicks still reach the territory beneath
+        }).addTo(group);
+      });
+    });
+
+    // ---- The toggle -------------------------------------------------------
+    var bar = document.createElement('div');
+    bar.className = 'altbar';
+    bar.innerHTML =
+        '<button id="mapAlt" title="Draw a second, independently traced set of '
+      + 'boundaries over the first"><span class="swatch"></span>Second reading</button>';
+
+    var note = document.createElement('p');
+    note.className = 'altnote';
+    note.innerHTML =
+        'The dashed line is a <strong>different reading of the same borders</strong> — '
+      + 'traced by hand for the &ldquo;Siena e Contrade&rdquo; map kept by '
+      + '<a href="https://www.thepalio.eu/" target="_blank" rel="noopener">thePalio.eu</a>. '
+      + 'It is not a correction and not an official line; neither set is. '
+      + 'The two agree on the city as a whole (162 vs 166 hectares) but redistribute it '
+      + 'between contrade, overlapping only about two-thirds on average. '
+      + '<strong>' + HEADLINE + '</strong> is the sharpest disagreement: the second reading '
+      + 'gives it 13.0 hectares against OpenStreetMap&rsquo;s 4.5, claiming a wedge south of '
+      + 'the Mercato that OpenStreetMap splits between Tartuca and Valdimontone. '
+      + 'At <strong>Piazza del Mercato</strong> itself, OpenStreetMap puts the whole square in '
+      + 'Torre while the second reading runs the Torre&ndash;Onda line diagonally across it. '
+      + 'Both leave Piazza del Campo outside every contrada, as it should be. '
+      + 'The borders that actually bind are those of the <em>Bando</em> of 1729, held by the '
+      + 'Comune di Siena and the Magistrato delle Contrade.';
+
+    // Slot both in after the map, before the existing source note.
+    var realmap = card.querySelector('.realmap');
+    var srcnote = card.querySelector('.note');
+    if(srcnote && srcnote.parentNode === card){
+      card.insertBefore(bar, srcnote);
+      card.insertBefore(note, srcnote);
+    } else if(realmap){
+      realmap.parentNode.insertBefore(bar, realmap.nextSibling);
+      realmap.parentNode.insertBefore(note, bar.nextSibling);
+    } else {
+      card.appendChild(bar); card.appendChild(note);
+    }
+
+    var btn = document.getElementById('mapAlt');
+    btn.addEventListener('click', function(){
+      var on = !btn.classList.contains('on');
+      btn.classList.toggle('on', on);
+      card.classList.toggle('altshown', on);
+      if(on) group.addTo(map); else map.removeLayer(group);
+    });
+
+    return true;
+  }
+
+  // The big map is built while this file parses, so this normally succeeds on
+  // the first try. The retry only covers the case where Leaflet was slow.
+  if(!build()){
+    var tries = 0;
+    var t = setInterval(function(){
+      if(build() || ++tries > 40) clearInterval(t);
+    }, 250);
+  }
+})();
+</script>
+
+<!-- ==========================================================================
+     v24 — THE PLACES OF EACH CONTRADA
+     --------------------------------------------------------------------------
+     Five things anchor a contrada in its own streets: the fontanina it baptises
+     its children at, the museum that holds its drappelloni, the oratory it
+     worships in, the society rooms it eats and argues in, and the stable where
+     the horse is guarded in the four days before a Palio.
+
+     OpenStreetMap has no usable set of these. The "Siena e Contrade" map kept by
+     thePalio.eu does, so that is the source. Where two or three share one
+     coordinate it is usually because they share one building — museum, oratory
+     and society are frequently the same complex — so co-located points are
+     merged into a single marker that names everything at it.
+     ========================================================================== -->
+<style>
+  #contradaMap .poibar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:8px 0 0}
+  #contradaMap .poibar button{background:#272320;color:var(--ink);border:1px solid var(--line);
+        border-radius:8px;padding:6px 11px;font:inherit;font-size:12px;cursor:pointer}
+  #contradaMap .poibar button:hover{border-color:#6d6055}
+  #contradaMap .poibar button.on{background:var(--accent,#d8a34a);color:#1a1613;font-weight:600;
+        border-color:var(--accent,#d8a34a)}
+  /* Category chips only appear once the layer is on. */
+  #contradaMap .poichips{display:none;gap:6px;flex-wrap:wrap;margin:8px 0 0}
+  #contradaMap.poishown .poichips{display:flex}
+  #contradaMap .poichip{background:#241f1d;border:1px solid var(--line);color:var(--ink,#efe9df);
+        border-radius:999px;padding:5px 11px;font:inherit;font-size:12px;cursor:pointer;
+        display:flex;align-items:center;gap:7px}
+  #contradaMap .poichip .dot{width:9px;height:9px;border-radius:50%;
+        box-shadow:0 0 0 1.5px rgba(255,255,255,.75)}
+  #contradaMap .poichip.off{opacity:.4}
+  #contradaMap .poinote{display:none;margin:8px 0 0;font-size:12px;line-height:1.5;
+        color:var(--muted,#a89c8e);border-left:2px solid var(--accent,#d8a34a);padding-left:10px}
+  #contradaMap.poishown .poinote{display:block}
+  #contradaMap.expanded .poinote{display:none}
+  /* Sheet map version — one small row under the existing controls. */
+  .sheetmapwrap .poibar2{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:8px 0 0;
+        font-size:12px}
+  .sheetmapwrap .poibar2 button{background:#272320;color:var(--ink);border:1px solid var(--line);
+        border-radius:8px;padding:5px 10px;font:inherit;font-size:12px;cursor:pointer}
+  .sheetmapwrap .poibar2 button.on{background:var(--accent,#d8a34a);color:#1a1613;font-weight:600;
+        border-color:var(--accent,#d8a34a)}
+  .sheetmapwrap .poibar2 .legend{display:flex;gap:9px;flex-wrap:wrap;color:var(--muted,#a89c8e)}
+  .sheetmapwrap .poibar2 .legend span{display:flex;align-items:center;gap:5px}
+  .sheetmapwrap .poibar2 .legend i{width:8px;height:8px;border-radius:50%;display:inline-block;
+        box-shadow:0 0 0 1.5px rgba(255,255,255,.7)}
+</style>
+<script>
+(function(){
+  'use strict';
+  if(typeof L === 'undefined') return;
+
+  var PLACES = {"aquila":[{"p":[43.316313,11.329674],"c":["fontanina"]},{"p":[43.316467,11.330719],"c":["museo","sede"]},{"p":[43.31653,11.330788],"c":["oratorio"]},{"p":[43.316476,11.330414],"c":["stalla"]}],"bruco":[{"p":[43.321925,11.332801],"c":["fontanina"]},{"p":[43.323253,11.332779],"c":["museo"]},{"p":[43.323204,11.332801],"c":["oratorio"]},{"p":[43.323155,11.332823],"c":["sede"]},{"p":[43.322251,11.332601],"c":["stalla"]}],"chiocciola":[{"p":[43.313293,11.327989],"c":["fontanina","museo","oratorio"]},{"p":[43.313342,11.328011],"c":["sede"]},{"p":[43.312799,11.327288],"c":["stalla"]}],"civetta":[{"p":[43.319737,11.332719],"c":["fontanina","museo"]},{"p":[43.319702,11.332411],"c":["oratorio"]},{"p":[43.319721,11.332378],"c":["sede"]},{"p":[43.319673,11.332826],"c":["stalla"]}],"drago":[{"p":[43.321435,11.328995],"c":["fontanina","museo","oratorio","sede"]},{"p":[43.320906,11.329489],"c":["stalla"]}],"giraffa":[{"p":[43.320706,11.333011],"c":["fontanina","museo","oratorio","stalla"]},{"p":[43.321188,11.332992],"c":["sede"]}],"istrice":[{"p":[43.326638,11.325809],"c":["fontanina"]},{"p":[43.325171,11.327489],"c":["museo"]},{"p":[43.32544,11.327316],"c":["oratorio"]},{"p":[43.325181,11.327428],"c":["sede"]},{"p":[43.326577,11.325366],"c":["stalla"]}],"leocorno":[{"p":[43.318657,11.333991],"c":["fontanina"]},{"p":[43.318999,11.334615],"c":["museo"]},{"p":[43.318962,11.334696],"c":["oratorio"]},{"p":[43.318894,11.334639],"c":["sede"]},{"p":[43.319009,11.334849],"c":["stalla"]}],"lupa":[{"p":[43.323108,11.331114],"c":["fontanina"]},{"p":[43.323169,11.331357],"c":["museo"]},{"p":[43.323044,11.331421],"c":["oratorio"]},{"p":[43.3225,11.331155],"c":["sede","stalla"]}],"nicchio":[{"p":[43.317844,11.339905],"c":["fontanina"]},{"p":[43.317863,11.338627],"c":["museo"]},{"p":[43.317866,11.338651],"c":["oratorio"]},{"p":[43.31778,11.33891],"c":["sede"]},{"p":[43.317842,11.338472],"c":["stalla"]}],"oca":[{"p":[43.319263,11.327569],"c":["fontanina"]},{"p":[43.319452,11.327702],"c":["museo","sede"]},{"p":[43.319571,11.328156],"c":["oratorio"]},{"p":[43.319598,11.328351],"c":["stalla"]}],"onda":[{"p":[43.315293,11.331904],"c":["fontanina"]},{"p":[43.315471,11.331803],"c":["museo","sede"]},{"p":[43.315318,11.331968],"c":["oratorio"]},{"p":[43.316534,11.331546],"c":["stalla"]}],"pantera":[{"p":[43.315686,11.329626],"c":["fontanina"]},{"p":[43.315024,11.328363],"c":["museo"]},{"p":[43.314224,11.32739],"c":["oratorio"]},{"p":[43.3148,11.32806],"c":["sede"]},{"p":[43.314957,11.328187],"c":["stalla"]}],"selva":[{"p":[43.317148,11.327485],"c":["fontanina"]},{"p":[43.317174,11.327414],"c":["museo"]},{"p":[43.31715,11.327399],"c":["oratorio"]},{"p":[43.317,11.32751],"c":["sede"]},{"p":[43.318456,11.328846],"c":["stalla"]}],"tartuca":[{"p":[43.315109,11.330412],"c":["fontanina"]},{"p":[43.314844,11.329672],"c":["museo","oratorio"]},{"p":[43.314802,11.329584],"c":["sede"]},{"p":[43.314824,11.330068],"c":["stalla"]}],"torre":[{"p":[43.316827,11.334701],"c":["fontanina"]},{"p":[43.317003,11.334369],"c":["museo"]},{"p":[43.316952,11.334514],"c":["oratorio"]},{"p":[43.317011,11.33467],"c":["sede"]},{"p":[43.318022,11.333283],"c":["stalla"]}],"montone":[{"p":[43.316849,11.33739],"c":["fontanina"]},{"p":[43.31518,11.33873],"c":["museo"]},{"p":[43.315769,11.338283],"c":["oratorio"]},{"p":[43.315339,11.339244],"c":["sede"]},{"p":[43.315603,11.338184],"c":["stalla"]}]};
+
+  // Category -> label and colour. Italian first, because that is what is
+  // written on the doors, with the English underneath in the popup.
+  var CAT = {
+    fontanina: {label:'Fontanina', en:'Baptismal fountain',        colour:'#6ec6a8'},
+    museo:     {label:'Museo',     en:'Museum',                    colour:'#d8a34a'},
+    oratorio:  {label:'Oratorio',  en:'Oratory',                   colour:'#c98bd6'},
+    sede:      {label:'Sede',      en:'Society rooms',             colour:'#e8836b'},
+    stalla:    {label:'Stalla',    en:'Stable',                    colour:'#b8b04a'}
+  };
+  var ORDER = ['fontanina','museo','oratorio','sede','stalla'];
+
+  // Pretty name for a contrada key, borrowed from the dashboard's own list.
+  function niceName(key){
+    try {
+      for(var i=0;i<C.length;i++) if(C[i].k === key) return C[i].n;
+    } catch(e){}
+    return key;
+  }
+
+  // One marker. Merged points get the colour of their first category and name
+  // everything standing at that spot.
+  function marker(key, place, map){
+    var first = ORDER.filter(function(c){ return place.c.indexOf(c) > -1; })[0];
+    var many  = place.c.length > 1;
+    var mk = L.circleMarker(place.p, {
+      pane: 'markerPane',
+      radius: many ? 7 : 5.5,
+      color: '#ffffff',
+      weight: many ? 2.5 : 1.6,
+      opacity: .95,
+      fillColor: CAT[first].colour,
+      fillOpacity: .95
+    });
+    var list = ORDER.filter(function(c){ return place.c.indexOf(c) > -1; })
+                    .map(function(c){ return CAT[c].label + ' <span style="opacity:.6">'
+                                           + CAT[c].en + '</span>'; }).join('<br>');
+    mk.bindTooltip('<strong>' + niceName(key) + '</strong><br>' + list,
+                   {direction:'top', offset:[0,-6]});
+    mk._cats = place.c;
+    return mk;
+  }
+
+  // ---- The big map --------------------------------------------------------
+  function buildBig(){
+    var card = document.getElementById('contradaMap');
+    var map  = window.PALIO_MAP;
+    if(!card || !map) return false;
+    if(card.dataset.poi) return true;
+    card.dataset.poi = '1';
+
+    var group = L.layerGroup();
+    Object.keys(PLACES).forEach(function(key){
+      PLACES[key].forEach(function(pl){ marker(key, pl, map).addTo(group); });
+    });
+
+    var bar = document.createElement('div');
+    bar.className = 'poibar';
+    bar.innerHTML = '<button id="mapPoi" title="Show each contrada\'s fountain, '
+                  + 'museum, oratory, society rooms and stable">Places</button>';
+
+    var chips = document.createElement('div');
+    chips.className = 'poichips';
+    chips.innerHTML = ORDER.map(function(c){
+      return '<button class="poichip" data-c="' + c + '">'
+           + '<span class="dot" style="background:' + CAT[c].colour + '"></span>'
+           + CAT[c].label + ' <span style="opacity:.55">' + CAT[c].en + '</span></button>';
+    }).join('');
+
+    var note = document.createElement('p');
+    note.className = 'poinote';
+    note.innerHTML =
+        'Places from the &ldquo;Siena e Contrade&rdquo; map kept by '
+      + '<a href="https://www.thepalio.eu/" target="_blank" rel="noopener">thePalio.eu</a> — '
+      + 'the only openly available set; OpenStreetMap has no equivalent. '
+      + 'A larger, white-ringed marker means several of these stand at one spot, which is '
+      + 'usually one building serving as museum, oratory and society rooms at once. '
+      + 'The <em>stalla</em> is where the horse is guarded from the assignment until the race.';
+
+    var srcnote = card.querySelector('.note');
+    [bar, chips, note].forEach(function(el){
+      if(srcnote && srcnote.parentNode === card) card.insertBefore(el, srcnote);
+      else card.appendChild(el);
+    });
+
+    var hidden = {};
+    function refresh(){
+      group.eachLayer(function(l){
+        var show = l._cats.some(function(c){ return !hidden[c]; });
+        if(l._path) l._path.style.display = show ? '' : 'none';
+      });
+    }
+
+    var btn = document.getElementById('mapPoi');
+    btn.addEventListener('click', function(){
+      var on = !btn.classList.contains('on');
+      btn.classList.toggle('on', on);
+      card.classList.toggle('poishown', on);
+      if(on){ group.addTo(map); refresh(); } else map.removeLayer(group);
+    });
+
+    chips.addEventListener('click', function(ev){
+      var chip = ev.target.closest('.poichip'); if(!chip) return;
+      var c = chip.dataset.c;
+      hidden[c] = !hidden[c];
+      chip.classList.toggle('off', !!hidden[c]);
+      refresh();
+    });
+
+    return true;
+  }
+
+  // ---- The contrada sheet -------------------------------------------------
+  // The sheet map is torn down and rebuilt every time a sheet opens, so this
+  // wraps showContrada the same way the sheet map itself does, and runs after.
+  function decorateSheet(){
+    var m   = window.PALIO_SHEETMAP;
+    var key = window.PALIO_SHEETKEY;
+    var wrap = document.querySelector('.sheetmapwrap');
+    if(!m || !key || !wrap || wrap.querySelector('.poibar2')) return;
+    var mine = PLACES[key]; if(!mine) return;
+
+    var group = L.layerGroup();
+    mine.forEach(function(pl){ marker(key, pl, m).addTo(group); });
+
+    var row = document.createElement('div');
+    row.className = 'poibar2';
+    row.innerHTML = '<button>Its places</button><span class="legend">'
+      + ORDER.map(function(c){
+          return '<span><i style="background:' + CAT[c].colour + '"></i>' + CAT[c].label + '</span>';
+        }).join('') + '</span>';
+
+    var bar = wrap.querySelector('.sheetbar');
+    if(bar && bar.parentNode) bar.parentNode.insertBefore(row, bar.nextSibling);
+    else wrap.insertBefore(row, wrap.firstChild);
+
+    var b = row.querySelector('button');
+    b.addEventListener('click', function(){
+      var on = !b.classList.contains('on');
+      b.classList.toggle('on', on);
+      if(on) group.addTo(m); else m.removeLayer(group);
+    });
+  }
+
+  var prev = window.showContrada;
+  if(typeof prev === 'function'){
+    window.showContrada = function(idx){
+      var r = prev.apply(this, arguments);
+      try { decorateSheet(); } catch(e){}
+      return r;
+    };
+  }
+
+  if(!buildBig()){
+    var tries = 0;
+    var t = setInterval(function(){ if(buildBig() || ++tries > 40) clearInterval(t); }, 250);
+  }
 })();
 </script>
 
