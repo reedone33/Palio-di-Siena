@@ -6278,6 +6278,228 @@ svg.leaflet-image-layer.leaflet-interactive path {
 })();
 </script>
 
+<!-- ==========================================================================
+     v25 — SORTABLE COLUMNS, EVERYWHERE
+     --------------------------------------------------------------------------
+     One delegated click handler on the document makes every table on the page
+     sortable, including the ones built on the fly inside a pop-up sheet, which
+     do not exist when this script runs. Nothing needs to be registered, and no
+     existing table markup changes.
+
+     Three things this has to get right, all of them learned from the tables
+     already on this page:
+
+       1. Contrada cells contain an SVG shield whose letter lands in
+          textContent, so "Pantera" reads as "P Pantera". The shield is stripped
+          before the value is read.
+       2. The rivals table puts its explanation in a following row that spans
+          every column. That row is not sorted; it travels with the row above it.
+       3. A date like "16 Aug 1987" must sort as a date, "33.3%" and "45½" as
+          numbers, and a blank or an em dash must fall to the bottom whichever
+          way the column is pointing.
+     ========================================================================== -->
+<style>
+  /* Only headings we actually made sortable get the affordance. */
+  th.sortable{cursor:pointer;user-select:none;position:relative;padding-right:20px}
+  th.sortable:hover{color:var(--accent,#d8a34a)}
+  /* A quiet double caret until the column is in use, then a single bright one. */
+  th.sortable:after{content:'\2195';position:absolute;right:6px;opacity:.28;
+        font-size:11px;font-weight:400}
+  th.sortable[data-dir="asc"]:after{content:'\2191';opacity:1;color:var(--accent,#d8a34a)}
+  th.sortable[data-dir="desc"]:after{content:'\2193';opacity:1;color:var(--accent,#d8a34a)}
+  th.sortable:focus-visible{outline:2px solid var(--accent,#d8a34a);outline-offset:-2px}
+</style>
+<script>
+(function(){
+  'use strict';
+
+  var MONTHS = {jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
+
+  // ---- Reading a cell -----------------------------------------------------
+  // The visible text, minus anything inside an SVG. Cloning is the simplest way
+  // to drop the shield without disturbing the live cell.
+  function cellText(td){
+    if(!td) return '';
+    if(td.dataset && td.dataset.sort !== undefined) return td.dataset.sort;
+    var c = td.cloneNode(true);
+    var svgs = c.querySelectorAll('svg');
+    for(var i=0;i<svgs.length;i++) svgs[i].remove();
+    return (c.textContent || '').replace(/\s+/g,' ').trim();
+  }
+
+  // Turn a cell into something comparable. Returns {n:Number} for anything
+  // numeric or date-like, {s:String} otherwise, {blank:true} for nothing.
+  function value(txt){
+    if(!txt || txt === '—' || txt === '-' || txt === '–') return {blank:true};
+
+    // "16 Aug 1987", "3 Jul 1983"
+    var d = txt.match(/^(\d{1,2})\s+([A-Za-z]{3})[a-z]*\.?\s+(\d{4})$/);
+    if(d && MONTHS[d[2].toLowerCase()] !== undefined){
+      return {n: Date.UTC(+d[3], MONTHS[d[2].toLowerCase()], +d[1])};
+    }
+    // "Jul 1983" — month and year only
+    var my = txt.match(/^([A-Za-z]{3})[a-z]*\.?\s+(\d{4})$/);
+    if(my && MONTHS[my[1].toLowerCase()] !== undefined){
+      return {n: Date.UTC(+my[2], MONTHS[my[1].toLowerCase()], 1)};
+    }
+
+    // Numbers: strip thousands separators, a trailing %, a leading currency
+    // sign, and turn the ½ used in disputed win totals into 0.5.
+    var num = txt.replace(/[, ]/g,'')
+                 .replace(/½/,'.5')
+                 .replace(/^[^\d\-+.]*/,'')
+                 .replace(/%\s*$/,'')
+                 .trim();
+    if(num !== '' && /^[-+]?\d*\.?\d+$/.test(num)) return {n: parseFloat(num)};
+
+    // "1633–2026" or "1982-1992" — sort on the first year.
+    var range = txt.match(/^(\d{4})\s*[–-]\s*(\d{4})$/);
+    if(range) return {n: +range[1]};
+
+    return {s: txt.toLowerCase()};
+  }
+
+  function compare(a, b){
+    if(a.blank && b.blank) return 0;
+    if(a.blank) return 1;            // blanks always sink, both directions
+    if(b.blank) return -1;
+    if('n' in a && 'n' in b) return a.n - b.n;
+    if('n' in a) return -1;          // numbers before stray text
+    if('n' in b) return 1;
+    return a.s < b.s ? -1 : a.s > b.s ? 1 : 0;
+  }
+
+  // ---- Rows, kept in their groups -----------------------------------------
+  // A row whose only cell spans the whole table (the rivals explanation) is a
+  // continuation of the row above it and must move with it.
+  function groups(body, cols){
+    var out = [], rows = body.rows;
+    for(var i=0;i<rows.length;i++){
+      var r = rows[i];
+      var spans = r.cells.length === 1 && cols > 1 &&
+                  (r.cells[0].colSpan || 1) > 1;
+      if(spans && out.length) out[out.length-1].extra.push(r);
+      else out.push({row:r, extra:[]});
+    }
+    return out;
+  }
+
+  function bodyOf(table){
+    if(table.tBodies && table.tBodies.length) return table.tBodies[0];
+    return null;
+  }
+
+  // ---- Marking the headings ----------------------------------------------
+  function prepare(table){
+    if(table.dataset.sortable) return table.dataset.sortable === 'yes';
+    var head = table.tHead, body = bodyOf(table);
+    if(!head || !head.rows.length || !body){ table.dataset.sortable='no'; return false; }
+    var cells = head.rows[head.rows.length - 1].cells;
+    if(!cells.length || body.rows.length < 2){ table.dataset.sortable='no'; return false; }
+    for(var i=0;i<cells.length;i++){
+      cells[i].classList.add('sortable');
+      cells[i].setAttribute('role','columnheader');
+      cells[i].setAttribute('aria-sort','none');
+      cells[i].setAttribute('tabindex','0');
+      cells[i].setAttribute('title','Sort by ' + (cells[i].textContent||'').trim());
+    }
+    table.dataset.sortable = 'yes';
+    return true;
+  }
+
+  // ---- The sort itself ----------------------------------------------------
+  function sortBy(table, th){
+    var head = table.tHead, body = bodyOf(table);
+    if(!head || !body) return;
+    var headRow = head.rows[head.rows.length - 1];
+    var idx = Array.prototype.indexOf.call(headRow.cells, th);
+    if(idx < 0) return;
+
+    var cols = headRow.cells.length;
+    var g = groups(body, cols);
+
+    // Read every value once, so the comparator does no parsing.
+    var keyed = g.map(function(item, i){
+      return {item:item, key:value(cellText(item.row.cells[idx])), i:i};
+    });
+
+    // First click on a column: numbers and dates start at the biggest, text at
+    // A. That is what a reader almost always wants from "most victories" or
+    // "most recent". Clicking again flips it.
+    var numeric = keyed.some(function(k){ return 'n' in k.key; });
+    var dir = th.dataset.dir === 'asc' ? 'desc'
+            : th.dataset.dir === 'desc' ? 'asc'
+            : (numeric ? 'desc' : 'asc');
+    var sign = dir === 'asc' ? 1 : -1;
+
+    keyed.sort(function(a,b){
+      var c = compare(a.key, b.key);
+      if(c === 0) return a.i - b.i;                  // stable
+      // Blanks stay at the bottom regardless of direction.
+      if(a.key.blank || b.key.blank) return c;
+      return c * sign;
+    });
+
+    var frag = document.createDocumentFragment();
+    keyed.forEach(function(k){
+      frag.appendChild(k.item.row);
+      k.item.extra.forEach(function(r){ frag.appendChild(r); });
+    });
+    body.appendChild(frag);
+
+    // Only one column shows an arrow at a time.
+    var cells = headRow.cells;
+    for(var i=0;i<cells.length;i++){
+      if(cells[i] === th) continue;
+      delete cells[i].dataset.dir;
+      cells[i].setAttribute('aria-sort','none');
+    }
+    th.dataset.dir = dir;
+    th.setAttribute('aria-sort', dir === 'asc' ? 'ascending' : 'descending');
+  }
+
+  // ---- One handler for the whole page, now and later ----------------------
+  function handle(ev){
+    var th = ev.target.closest ? ev.target.closest('th') : null;
+    if(!th) return;
+    var table = th.closest('table');
+    if(!table || !table.tHead || !table.tHead.contains(th)) return;
+    if(!prepare(table)) return;
+    if(!th.classList.contains('sortable')) return;
+    ev.preventDefault();
+    sortBy(table, th);
+  }
+
+  document.addEventListener('click', handle, true);
+  document.addEventListener('keydown', function(ev){
+    if(ev.key !== 'Enter' && ev.key !== ' ') return;
+    var th = ev.target.closest ? ev.target.closest('th') : null;
+    if(th && th.classList.contains('sortable')) handle(ev);
+  }, true);
+
+  // Mark up whatever is already on the page, and anything added afterwards, so
+  // the arrows are visible before the first click rather than after it.
+  function sweep(root){
+    var t = (root || document).querySelectorAll('table');
+    for(var i=0;i<t.length;i++) prepare(t[i]);
+  }
+  sweep();
+  if(window.MutationObserver){
+    new MutationObserver(function(muts){
+      for(var i=0;i<muts.length;i++){
+        var added = muts[i].addedNodes;
+        for(var j=0;j<added.length;j++){
+          var n = added[j];
+          if(n.nodeType !== 1) continue;
+          if(n.tagName === 'TABLE') prepare(n);
+          else if(n.querySelectorAll) sweep(n);
+        }
+      }
+    }).observe(document.body, {childList:true, subtree:true});
+  }
+})();
+</script>
+
 <script>
 /* ---------------------------------------------------------------------------
    Register the service worker. This is what makes the dashboard installable
