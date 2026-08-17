@@ -8383,6 +8383,91 @@ svg.leaflet-image-layer.leaflet-interactive path {
 })();
 </script>
 
+<!-- ==========================================================================
+     v34 — MORE SEE-THROUGH, SAME LEGIBILITY
+     --------------------------------------------------------------------------
+     The panels go from 60% opaque to about 42%, so the Piazza reads through
+     them properly. Transparency alone would cost legibility, so three things
+     take up the slack:
+
+       * the blur goes up (16px → 22px) and the saturation with it. A harder
+         blur destroys the fine detail that competes with small text while
+         keeping the colour and the shape of what is behind — the photograph
+         still reads, the crowd's faces stop fighting the words.
+       * a top-to-bottom gloss and a brighter hairline edge keep each panel
+         reading as a pane of glass rather than as a hole in the page.
+       * a faint text shadow under body copy. Not a glow — 0.55 alpha at 6px,
+         enough to hold an edge where the tufo behind is pale.
+
+     The pop-up sheets stay a little heavier than the cards (52%): they are a
+     reading surface sitting over an already-busy page, and the same value that
+     works for a card is too thin for a full sheet of prose.
+     ========================================================================== -->
+<style>
+  .card, .sheet{
+    background:
+      linear-gradient(rgba(255,255,255,.055), rgba(255,255,255,.012) 42%, rgba(0,0,0,.035)),
+      rgba(26,18,14,.42) !important;
+    -webkit-backdrop-filter:blur(22px) saturate(150%);
+            backdrop-filter:blur(22px) saturate(150%);
+    border:1px solid rgba(255,255,255,.15) !important;
+    box-shadow:0 12px 38px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.10);
+  }
+  .sheet{
+    background:
+      linear-gradient(rgba(255,255,255,.05), rgba(255,255,255,.01) 42%, rgba(0,0,0,.04)),
+      rgba(24,17,13,.52) !important;
+  }
+  /* A card inside a card would double the blur and muddy it — tint only. */
+  .card .card{
+    background:rgba(255,255,255,.055) !important;
+    -webkit-backdrop-filter:none;backdrop-filter:none;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.07);
+  }
+
+  /* Small surfaces lift slightly so they still separate from a thinner card. */
+  .stat, .watchcard, .rivcard, .kpi, .mount, .cofield,
+  #contradaMap .altbar button, #contradaMap .poibar button, #contradaMap .mapbar button,
+  .fieldbar button, .cenc-bar button, .cenc-bar select, .cenc-stage{
+    background:rgba(255,255,255,.075) !important;
+    border-color:rgba(255,255,255,.15) !important;
+  }
+
+  /* Chrome: the bar and the drawer follow the cards down, a little behind them. */
+  /* The bar must still mask what scrolls under it, or headings show through it
+     and the top of the page reads as a smear. It stays the least transparent
+     surface on the page for that reason. */
+  .topbar{background:rgba(20,14,11,.70) !important;
+    -webkit-backdrop-filter:blur(24px) saturate(150%);
+            backdrop-filter:blur(24px) saturate(150%)}
+  .tabs{background:rgba(20,14,11,.52) !important}
+  .drawer{background:rgba(24,17,13,.80) !important}
+
+  /* Legibility insurance. Headings and body only — not numerals, which are
+     large and bright enough, and not links, which would smear. */
+  body{text-shadow:0 1px 6px rgba(0,0,0,.55)}
+  .stat b, .kpi .value, h1, h2{text-shadow:0 2px 10px rgba(0,0,0,.55)}
+  table, .note, .nsum{text-shadow:0 1px 5px rgba(0,0,0,.5)}
+  /* Leaflet draws its own labels; a shadow there fights the halo it already has. */
+  .leaflet-container, .leaflet-container *{text-shadow:none}
+
+
+  /* The scrim sits between the photograph and the panels, so thinning the
+     panels alone just revealed more scrim. Lightening it is what actually lets
+     the Piazza through — the blur and the panel tint keep the text safe. */
+  body:after{
+    background:
+      radial-gradient(120% 90% at 50% 0%,  rgba(28,16,10,.34), rgba(14,10,8,.62) 70%),
+      linear-gradient(180deg, rgba(120,52,20,.14), rgba(16,11,8,.34) 45%, rgba(10,8,6,.62)) !important;
+  }
+
+  /* Table rules were tuned against a denser card; lift them a shade so rows
+     stay separable through the thinner panel. */
+  td{border-bottom-color:rgba(255,255,255,.09) !important}
+  th{border-bottom-color:rgba(255,255,255,.18) !important}
+  tbody tr:hover{background:rgba(255,255,255,.045)}
+</style>
+
 <script>
 /* ---------------------------------------------------------------------------
    Register the service worker. This is what makes the dashboard installable
