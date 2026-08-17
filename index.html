@@ -8468,6 +8468,96 @@ svg.leaflet-image-layer.leaflet-interactive path {
   tbody tr:hover{background:rgba(255,255,255,.045)}
 </style>
 
+<!-- ==========================================================================
+     v35 — SAY WHICH BUILD THIS IS
+     --------------------------------------------------------------------------
+     Small line at the very bottom. Two values, because they answer two
+     different questions:
+
+       * "Version 35 · built 17 August 2026" is baked in here, so it says which
+          edition of the page you are reading even with no connection.
+       * the cache name is read at runtime from `caches.keys()`, which reports
+         the shell the service worker is ACTUALLY serving. That is the value
+         that matters when the app looks out of date: if the page says v35 but
+         the cache says an older hash, the installed copy has not swapped over
+         yet and "Check for updates" is the answer. This exact confusion cost
+         an afternoon, so the app can now diagnose itself.
+
+     `caches` needs a secure context, so opened as a local file it is simply
+     omitted rather than shown broken.
+     ========================================================================== -->
+<style>
+  .buildline{margin-top:14px;font-size:11px;line-height:1.6;color:var(--muted);
+        opacity:.75;letter-spacing:.2px}
+  .buildline b{font-weight:600;color:var(--muted)}
+  .buildline .sep{opacity:.45;margin:0 6px}
+  .buildline .stale{color:var(--accent-2);opacity:1}
+</style>
+<script>
+(function(){
+  'use strict';
+
+  var VERSION = 35;
+  var BUILT   = '17 August 2026';
+
+  function render(cacheName, waiting){
+    var f = document.querySelector('footer');
+    if(!f) return false;
+    var line = f.querySelector('.buildline');
+    if(!line){
+      line = document.createElement('div');
+      line.className = 'buildline';
+    }
+    // appendChild on an existing node moves it, which keeps this line last even
+    // though the news layer appends its own stamp after this block parses.
+    f.appendChild(line);
+    var html = 'Version <b>' + VERSION + '</b>'
+             + '<span class="sep">·</span>built ' + BUILT;
+    if(cacheName){
+      html += '<span class="sep">·</span>serving <b>' + cacheName + '</b>';
+    }
+    if(waiting){
+      html += '<span class="sep">·</span><span class="stale">an update is ready — '
+            + 'press Check for updates</span>';
+    }
+    line.innerHTML = html;
+    line.title = 'Version ' + VERSION + ', built ' + BUILT
+               + (cacheName ? '. Installed shell: ' + cacheName : '')
+               + '. The version is part of the page; the shell name comes from the '
+               + 'service worker, so the two differ while an update is pending.';
+    return true;
+  }
+
+  function read(){
+    if(!render(null, false)) return false;
+
+    // The shell the service worker is really serving, and whether a newer one
+    // is sitting in the wings.
+    try {
+      if(window.caches && window.isSecureContext){
+        caches.keys().then(function(keys){
+          var mine = keys.filter(function(k){ return /^palio-/.test(k); })
+                         .map(function(k){ return k.replace(/-shell$/, ''); });
+          // Newest last is not guaranteed, so show the one the running page came
+          // from when we can tell, otherwise the only one there.
+          var name = mine.length === 1 ? mine[0] : mine.join(' + ');
+          navigator.serviceWorker.getRegistration().then(function(reg){
+            render(name, !!(reg && reg.waiting));
+          }).catch(function(){ render(name, false); });
+        }).catch(function(){});
+      }
+    } catch(e){}
+    return true;
+  }
+
+  if(!read()){
+    var n = 0, iv = setInterval(function(){ if(read() || ++n > 40) clearInterval(iv); }, 200);
+  }
+  // One last nudge after everything else has finished appending to the footer.
+  setTimeout(function(){ try { read(); } catch(e){} }, 2500);
+})();
+</script>
+
 <script>
 /* ---------------------------------------------------------------------------
    Register the service worker. This is what makes the dashboard installable
