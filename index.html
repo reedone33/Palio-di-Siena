@@ -7836,6 +7836,180 @@ svg.leaflet-image-layer.leaflet-interactive path {
 })();
 </script>
 
+<!-- ==========================================================================
+     v32 — POSTPONED AGAIN
+     --------------------------------------------------------------------------
+     News refresh only; no layout changes. Rain stopped the Carriera a second
+     time on Monday 17 August — a fresh storm from about 14:00, green flag out
+     again at Palazzo Pubblico, race moved to Tuesday 18 August. That is only
+     the second time in fifty years the Assunta has slipped two days; the last
+     was 1976, and 1907 did the same. Both of those eventually ran on 18 August.
+
+     Everything the postponement touches is rewritten from one place here: the
+     header line, the notice under it, the news card, the watch-live times, and
+     the "Running in the Palio of…" captions on the Jockeys and Horses tabs.
+     The horses stay with their contrade — that was fixed at the Tratta — so the
+     mount data is untouched.
+     ========================================================================== -->
+<script>
+(function(){
+  'use strict';
+
+  var RACE_ISO   = '2026-08-18';
+  var RACE_LABEL = 'the Palio of 18 August 2026';
+
+  var FRESH = [
+    {date:'2026-08-17', race:'2026-08-16', tag:'race', source:'Radio Siena TV',
+     title:'Palio di Siena, piove sul bagnato: Carriera ancora rimandata',
+     summary:'The green flag went out a second time in twenty-four hours; the Carriera moves to Tuesday 18 August.',
+     url:'https://www.radiosienatv.it/palio-di-siena-piove-sul-bagnato-carriera-ancora-rimandata/',
+     contrade:[], fantini:[], cavalli:[]},
+    {date:'2026-08-17', race:'2026-08-16', tag:'race', source:'Firenze Post',
+     title:'Palio di Siena agosto 2026: rinviato ancora per la pioggia',
+     summary:'A new front arriving about 14:00 finished the day’s hopes — only the second time in fifty years the Assunta has slipped two days, after 1976.',
+     url:'https://www.firenzepost.it/2026/08/17/palio-di-siena-agosto-2026-rinviato-ancora-per-la-pioggia/',
+     contrade:[], fantini:[], cavalli:[]},
+    {date:'2026-08-17', race:'2026-08-16', tag:'race', source:'Radio Siena TV',
+     title:'Palio di Siena, 17 agosto sotto assedio dei temporali. Sonnini: «Sarà molto difficile»',
+     summary:'The forecaster gave the evening 40–50% odds of rain and warned instability would last past dusk — read hours before the decision, and right.',
+     url:'https://www.radiosienatv.it/palio-di-siena-17-agosto-sotto-assedio-dei-temporali-sonnini-sara-molto-difficile-instabilita-fino-alla-serata/',
+     contrade:[], fantini:[], cavalli:[]},
+    {date:'2026-08-17', race:'2026-08-16', tag:'race', source:'La Nazione',
+     title:'Palio, nuova beffa del meteo. Corteo storico e corsa slittano',
+     summary:'The city and the Captains decided together, on the horses’ safety; a further deterioration is forecast after 18 August.',
+     url:'https://www.lanazione.it/siena/cronaca/palio-nuova-beffa-del-meteo-e9064887',
+     contrade:[], fantini:[], cavalli:[]}
+  ];
+
+  function fixHead(){
+    var head = document.getElementById('nextHead');
+    if(!head || head.dataset.v32) return false;
+    var lede = head.querySelector('.lede');
+    var note = head.querySelector('.rainnote');
+    if(!lede) return false;
+    head.dataset.v32 = '1';
+
+    lede.innerHTML = '16 August 2026 — <strong>postponed twice by rain; now runs Tuesday '
+                   + '18 August, 19:00 in Siena (1:00pm ET)</strong>.';
+
+    // The page decides past/future by comparing today with NEXT.date, which is
+    // still 16 August — so on the 17th it had already called this "The last
+    // Palio" with a dash for the countdown, while the race had not been run.
+    // Both are corrected against the date it will actually be run.
+    var eyebrow = head.querySelector('.eyebrow');
+    if(eyebrow) eyebrow.textContent = 'The next Palio';
+    // Midnight to midnight, the way the page's own countdown does it — an
+    // hours-based calculation reads "2 days" at teatime the day before.
+    var today = new Date(); today.setHours(0,0,0,0);
+    var days = Math.round((new Date(RACE_ISO + 'T00:00:00') - today) / 86400000);
+    var first = head.querySelector('.stat b');
+    if(first) first.textContent = days > 0 ? days : 0;
+    var lbl = head.querySelector('.stat span');
+    if(lbl) lbl.textContent = days === 1 ? 'day to go' : 'days to go';
+
+    var html =
+        '<b>Rinviato, due volte.</b> Rain took the tufo on Sunday afternoon, and on Monday a '
+      + 'second front arriving around 14:00 did it again — the green flag went out at the '
+      + 'Palazzo Pubblico for the second day running. The Carriera now runs '
+      + '<strong>Tuesday 18 August</strong>. The city and the Captains took the decision '
+      + 'together, on the safety of the horses and riders.<br><br>'
+      + 'This is only the second time in fifty years that the Assunta has slipped two days. '
+      + 'It happened in <strong>1976</strong>, and in <strong>1907</strong> — and both of '
+      + 'those eventually ran on 18 August, won by Civetta and Lupa. The horses drawn at the '
+      + 'Tratta stay with their contrade; the jockeys are registered again on the new race '
+      + 'morning, so a late swap remains possible. Siena had not published Tuesday’s clock '
+      + 'when this page was built, and precedent is that the same one is used.';
+    if(note) note.innerHTML = html;
+    else lede.insertAdjacentHTML('afterend', '<div class="rainnote">' + html + '</div>');
+    return true;
+  }
+
+  function fixNews(){
+    var card = document.getElementById('newsNext');
+    if(!card || card.dataset.v32) return false;
+    if(typeof NEWS === 'undefined') return false;
+    card.dataset.v32 = '1';
+
+    NEWS.generated = '2026-08-17T15:20:00+02:00';
+    NEWS.race.stage = 'Postponed twice by rain — the Carriera now runs Tuesday 18 August';
+    NEWS.race.nextMilestone = 'Corteo Storico, then the race';
+    NEWS.race.nextMilestoneWhen = 'Tuesday 18 August, expected at 16:50 and 19:00 Siena time '
+                                + '(10:50am and 1:00pm ET), weather permitting';
+    var have = {};
+    NEWS.items.forEach(function(i){ have[i.url] = 1; });
+    FRESH.slice().reverse().forEach(function(i){ if(!have[i.url]) NEWS.items.unshift(i); });
+
+    var note = card.querySelector('.note');
+    if(note) note.innerHTML = NEWS.race.stage + '. Next: <strong>' + NEWS.race.nextMilestone
+                            + '</strong>, ' + NEWS.race.nextMilestoneWhen + '.';
+    var list = card.querySelector('.newscard');
+    if(list) list.innerHTML = NEWS.items.slice(0,6).map(function(n){
+      return '<div class="nitem">'
+           + '<div class="nmeta">' + new Date(n.date + 'T12:00:00')
+               .toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})
+           + ' · ' + n.source + '<span class="ntag">' + n.tag + '</span></div>'
+           + '<div class="ntitle"><a href="' + n.url + '" target="_blank" rel="noopener">'
+           + n.title + '</a></div>'
+           + '<div class="nsum">' + n.summary + '</div></div>';
+    }).join('');
+    var stamp = card.querySelector('.newsstamp');
+    if(stamp) stamp.textContent = 'News as of 17 August 2026, 15:20 Siena time — a snapshot '
+                                + 'taken when this page was built, not a live feed.';
+    return true;
+  }
+
+  function fixWatch(){
+    var card = document.getElementById('watchCard');
+    if(!card || card.dataset.v32) return false;
+    card.dataset.v32 = '1';
+    var when = card.querySelector('.watchwhen');
+    if(when) when.innerHTML =
+        '<div>Tuesday 18 August · Corteo Storico <b>16:50</b> Siena · <b>10:50am</b> ET</div>'
+      + '<div>Horses leave the Entrone <b>19:00</b> Siena · <b>1:00pm</b> ET</div>';
+    var note = card.querySelector('.note');
+    if(note) note.insertAdjacentHTML('beforeend',
+      ' <strong>Both times are Sunday’s clock, which is what precedent says Tuesday will '
+      + 'use; Siena had not confirmed it when this page was built.</strong>');
+    return true;
+  }
+
+  // The Jockeys and Horses captions were written against 17 August.
+  function fixFieldbars(){
+    var bars = document.querySelectorAll('.fieldbar .when');
+    if(!bars.length) return false;
+    var done = 0;
+    bars.forEach(function(el){
+      if(el.dataset.v32) return;
+      el.dataset.v32 = '1';
+      var ran = new Date() > new Date(RACE_ISO + 'T23:59:00');
+      el.textContent = (ran ? 'Ran in ' : 'Running in ') + RACE_LABEL;
+      done++;
+    });
+    return true;
+  }
+
+  var STEPS = [fixHead, fixNews, fixWatch, fixFieldbars];
+  var ok = STEPS.map(function(){ return false; });
+  function run(){
+    var all = true;
+    STEPS.forEach(function(fn, i){
+      if(ok[i]) return;
+      try { ok[i] = !!fn(); } catch(e){ ok[i] = true; }
+      if(!ok[i]) all = false;
+    });
+    return all;
+  }
+  if(!run()){
+    var n = 0, iv = setInterval(function(){ if(run() || ++n > 40) clearInterval(iv); }, 200);
+  }
+  // The field bars only exist once their tab's button has been pressed.
+  if(window.MutationObserver){
+    new MutationObserver(function(){ try { fixFieldbars(); } catch(e){} })
+      .observe(document.body, {childList:true, subtree:true});
+  }
+})();
+</script>
+
 <script>
 /* ---------------------------------------------------------------------------
    Register the service worker. This is what makes the dashboard installable
