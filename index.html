@@ -7764,6 +7764,78 @@ svg.leaflet-image-layer.leaflet-interactive path {
 })();
 </script>
 
+<!-- ==========================================================================
+     v31 — THE FIELD TABLES, TIGHTENED
+     --------------------------------------------------------------------------
+     Five columns of short values stretched across a 1140px card: every column
+     came out ~225px wide, so "Canarinu" ended 170px before the next column
+     began and the whole thing read as scattered rather than tabular. Same
+     underlying cause as the contrada table — no column sizing, so the browser
+     divides the width evenly whatever the content is.
+
+     Fixed the same way: a colgroup with widths that follow the content, a cap
+     on how wide the table may grow, and the jockey's real name set beside the
+     nickname rather than under it, so every row is one line and the columns
+     line up across the table.
+     ========================================================================== -->
+<style>
+  .fieldtable{width:100%}
+  .fieldtable th{white-space:normal;line-height:1.25;vertical-align:bottom}
+  .fieldtable td{vertical-align:middle;white-space:nowrap}
+  /* One line per row: the real name sits after the nickname, not beneath it. */
+  .fieldtable .real{display:inline;margin-left:7px}
+  .fieldtable td.num, .fieldtable th.num{text-align:right}
+  .fieldtable .co{gap:7px}
+  /* The record column reads better as text than as a right-aligned number. */
+  .fieldtable td:nth-child(4){color:var(--muted)}
+  .fieldtable td:nth-child(4) .debut{color:var(--accent-2)}
+  @media(max-width:720px){
+    .fieldtable{min-width:640px}
+    .fieldwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+    .fieldtable .real{display:block;margin-left:0}
+  }
+</style>
+<script>
+(function(){
+  'use strict';
+  // Fantino/Cavallo, Contrada, the other name, the record, the win count.
+  var W = ['30%','19%','19%','17%','15%'];
+
+  function fix(t){
+    if(!t || t.dataset.v31) return;
+    t.dataset.v31 = '1';
+
+    var old = t.querySelector('colgroup');
+    if(old) old.remove();
+    var cg = document.createElement('colgroup');
+    cg.innerHTML = W.map(function(w){ return '<col style="width:' + w + '">'; }).join('');
+    t.insertBefore(cg, t.firstChild);
+
+    if(!t.parentElement.classList.contains('fieldwrap')){
+      var w = document.createElement('div');
+      w.className = 'fieldwrap';
+      t.parentNode.insertBefore(w, t);
+      w.appendChild(t);
+    }
+  }
+
+  function run(){
+    var ts = document.querySelectorAll('.fieldtable');
+    if(!ts.length) return false;
+    ts.forEach(fix);
+    return true;
+  }
+
+  // The tables are built when their tab's button is first pressed, so watch for
+  // them arriving rather than assuming they are already in the document.
+  run();
+  if(window.MutationObserver){
+    new MutationObserver(function(){ run(); })
+      .observe(document.body, {childList:true, subtree:true});
+  }
+})();
+</script>
+
 <script>
 /* ---------------------------------------------------------------------------
    Register the service worker. This is what makes the dashboard installable
