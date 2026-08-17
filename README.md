@@ -121,3 +121,9 @@ site draws more of it than a file on your own machine. It's a small archive of s
 thumbnails and this is a personal project, so the load is negligible — but if you'd rather
 not lean on someone else's server at all, the alternative is to copy a subset into the app.
 The last 25 years is about 1.5 MB, which is perfectly manageable.
+
+---
+
+*Last published: 17 August 2026 — version 35. GitHub Pages stalled during the
+platform outage of that morning and did not publish two commits that had pushed
+successfully; this line exists to give Pages a new commit and restart it.*
