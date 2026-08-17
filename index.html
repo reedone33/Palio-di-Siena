@@ -7078,6 +7078,342 @@ svg.leaflet-image-layer.leaflet-interactive path {
 })();
 </script>
 
+<!-- ==========================================================================
+     v28 — THE BANNERS A CONTRADA HAS WON
+     --------------------------------------------------------------------------
+     One carousel component, mounted in two places: a card at the foot of the
+     Contrade tab with its own contrada picker, and inside every contrada
+     pop-up. Newest first by default, with an order control; drag or swipe left
+     and right, or use the arrow keys.
+
+     Two things worth knowing about the implementation:
+
+       * The photographs are linked from ilpalio.org, not embedded. Oca has
+         fifty of them. Loading fifty at once to show one would be rude to
+         their server and slow for the reader, so only the current slide and
+         its two neighbours ever get a src — the rest are hydrated as you
+         reach them.
+       * Pointer events, not touch events. One set of handlers then covers
+         finger, trackpad and mouse, and setPointerCapture keeps the drag alive
+         when the finger leaves the element.
+     ========================================================================== -->
+<style>
+  .cenc{margin-top:6px}
+  .cenc-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+  .cenc-bar button{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);
+        color:var(--text);border-radius:8px;width:34px;height:32px;font-size:17px;line-height:1;
+        cursor:pointer;font-family:inherit}
+  .cenc-bar button:hover{border-color:var(--accent);color:var(--accent-2)}
+  .cenc-bar button:disabled{opacity:.35;cursor:default;border-color:rgba(255,255,255,.14);
+        color:var(--text)}
+  .cenc-count{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;min-width:64px;
+        text-align:center}
+  .cenc-bar select, .cenc-bar .cenc-pick{background:rgba(255,255,255,.07);
+        border:1px solid rgba(255,255,255,.14);color:var(--text);border-radius:8px;
+        padding:6px 9px;font:inherit;font-size:12px}
+  .cenc-bar .grow{flex:1}
+  .cenc-stage{overflow:hidden;border-radius:10px;background:rgba(0,0,0,.22);
+        border:1px solid rgba(255,255,255,.08);touch-action:pan-y;cursor:grab}
+  .cenc-stage.drag{cursor:grabbing}
+  .cenc-track{display:flex;transition:transform .28s cubic-bezier(.22,.61,.36,1);will-change:transform}
+  .cenc-track.nodur{transition:none}
+  .cenc-slide{flex:0 0 100%;display:flex;align-items:center;justify-content:center;
+        padding:14px 10px;min-height:220px}
+  .cenc-slide img{max-height:340px;max-width:100%;width:auto;border-radius:6px;
+        box-shadow:0 10px 30px rgba(0,0,0,.5);display:block}
+  .cenc-slide .ph{color:var(--muted);font-size:12px;text-align:center;padding:30px 10px}
+  .cenc-cap{margin-top:10px;font-size:13px;line-height:1.5}
+  .cenc-cap .d{font-weight:600}
+  .cenc-cap .m{color:var(--muted)}
+  .cenc-cap .who{cursor:pointer}
+  .cenc-cap .who:hover{color:var(--accent-2);text-decoration:underline;text-underline-offset:3px}
+  .cenc-dots{display:flex;gap:4px;flex-wrap:wrap;margin-top:9px}
+  .cenc-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.22);cursor:pointer}
+  .cenc-dot.on{background:var(--accent-2);transform:scale(1.35)}
+  .cenc-empty{color:var(--muted);font-size:13px}
+  @media(max-width:640px){ .cenc-slide img{max-height:260px} .cenc-slide{min-height:180px} }
+</style>
+<script>
+(function(){
+  'use strict';
+  if(typeof bannerRaces === 'undefined') return;
+
+  /* ---- Which banners belong to a contrada -------------------------------- */
+  function winsOf(coIdx){
+    return bannerRaces.filter(function(r){ return r.v && r.v[1] === coIdx; });
+  }
+
+  function caption(r){
+    var painter = r.painter
+      ? 'Painted by <strong>' + r.painter + '</strong>'
+      : '<span class="m">Painter unrecorded</span>';
+    var who = '';
+    if(r.v){
+      var f = DD.fnames[r.v[2]], h = DD.hnames[r.v[3]];
+      var bits = [];
+      if(f) bits.push('<span class="who" data-jockey="' + f + '">' + f + '</span>');
+      if(h) bits.push('on <span class="who" data-horse="' + h + '">' + h + '</span>');
+      if(bits.length) who = ' · ' + bits.join(' ');
+    }
+    return '<span class="d">' + niceDate(r.d) + '</span>' + who
+         + '<br><span class="m">' + painter + '</span>';
+  }
+
+  /* ---- The carousel ------------------------------------------------------
+     `host` is emptied and filled. `pick` adds a contrada dropdown when the
+     carousel is not already tied to one contrada. */
+  function carousel(host, coIdx, opts){
+    opts = opts || {};
+    var order = 'desc', at = 0, list = [];
+
+    host.innerHTML =
+        '<div class="cenc">'
+      +   '<div class="cenc-bar">'
+      +     (opts.pick ? '<select class="cenc-pick"></select>' : '')
+      +     '<button class="cenc-prev" title="Previous (left arrow)">&#8249;</button>'
+      +     '<div class="cenc-count"></div>'
+      +     '<button class="cenc-next" title="Next (right arrow)">&#8250;</button>'
+      +     '<span class="grow"></span>'
+      +     '<select class="cenc-sort">'
+      +       '<option value="desc">Newest first</option>'
+      +       '<option value="asc">Oldest first</option>'
+      +     '</select>'
+      +   '</div>'
+      +   '<div class="cenc-stage"><div class="cenc-track"></div></div>'
+      +   '<div class="cenc-cap"></div>'
+      +   '<div class="cenc-dots"></div>'
+      + '</div>';
+
+    var root  = host.querySelector('.cenc');
+    var stage = root.querySelector('.cenc-stage');
+    var track = root.querySelector('.cenc-track');
+    var cap   = root.querySelector('.cenc-cap');
+    var cnt   = root.querySelector('.cenc-count');
+    var dots  = root.querySelector('.cenc-dots');
+    var prev  = root.querySelector('.cenc-prev');
+    var next  = root.querySelector('.cenc-next');
+    var sort  = root.querySelector('.cenc-sort');
+    var pick  = root.querySelector('.cenc-pick');
+
+    if(pick){
+      pick.innerHTML = C.map(function(c,i){ return '<option value="'+i+'">'+c.name+'</option>'; }).join('');
+      pick.value = coIdx;
+      pick.addEventListener('change', function(){ coIdx = +pick.value; load(); });
+    }
+
+    function load(){
+      list = winsOf(coIdx).slice().sort(function(a,b){
+        return order === 'asc' ? a.d.localeCompare(b.d) : b.d.localeCompare(a.d);
+      });
+      at = 0;
+      if(!list.length){
+        track.innerHTML = '<div class="cenc-slide"><span class="ph">No drappellone on the '
+                        + 'archive for this contrada.</span></div>';
+        cap.innerHTML = ''; cnt.textContent = ''; dots.innerHTML = '';
+        prev.disabled = next.disabled = true;
+        return;
+      }
+      // Slides are built empty; hydrate() fills in the src as you arrive.
+      track.innerHTML = list.map(function(r){
+        return '<div class="cenc-slide" data-race="' + r.i + '">'
+             + '<span class="ph">…</span></div>';
+      }).join('');
+      show(0, true);
+    }
+
+    function hydrate(i){
+      for(var k = i - 1; k <= i + 1; k++){
+        if(k < 0 || k >= list.length) continue;
+        var slide = track.children[k];
+        if(!slide || slide.dataset.on) continue;
+        slide.dataset.on = '1';
+        slide.innerHTML = bannerImg(list[k].d, list[k].v ? list[k].v[1] : -1, 240);
+        var img = slide.querySelector('img');
+        if(img){ img.style.maxHeight = '340px'; img.style.width = 'auto'; img.removeAttribute('width'); }
+      }
+    }
+
+    function show(i, instant){
+      at = Math.max(0, Math.min(list.length - 1, i));
+      hydrate(at);
+      track.classList.toggle('nodur', !!instant);
+      track.style.transform = 'translateX(' + (-at * 100) + '%)';
+      if(instant) requestAnimationFrame(function(){ track.classList.remove('nodur'); });
+      cap.innerHTML = caption(list[at]);
+      cnt.textContent = (at + 1) + ' / ' + list.length;
+      prev.disabled = at === 0;
+      next.disabled = at === list.length - 1;
+      // A dot per banner is fine at fifty; beyond that it would wrap forever.
+      dots.innerHTML = list.length <= 60 ? list.map(function(_, k){
+        return '<span class="cenc-dot' + (k === at ? ' on' : '') + '" data-go="' + k + '"></span>';
+      }).join('') : '';
+    }
+
+    prev.addEventListener('click', function(){ show(at - 1); });
+    next.addEventListener('click', function(){ show(at + 1); });
+    sort.addEventListener('change', function(){ order = sort.value; load(); });
+    dots.addEventListener('click', function(e){
+      var d = e.target.closest('.cenc-dot'); if(d) show(+d.dataset.go);
+    });
+
+    // Drag and swipe. One pointer only; vertical drags are left to the page.
+    var down = null, moved = 0;
+    stage.addEventListener('pointerdown', function(e){
+      if(e.button) return;
+      down = {x:e.clientX, y:e.clientY}; moved = 0;
+      stage.setPointerCapture(e.pointerId);
+      stage.classList.add('drag');
+    });
+    stage.addEventListener('pointermove', function(e){
+      if(!down) return;
+      var dx = e.clientX - down.x, dy = e.clientY - down.y;
+      if(Math.abs(dy) > Math.abs(dx) * 1.4) return;   // that is a scroll, not a swipe
+      moved = dx;
+      track.classList.add('nodur');
+      track.style.transform = 'translateX(calc(' + (-at * 100) + '% + ' + dx + 'px))';
+    });
+    function release(){
+      if(!down) return;
+      down = null; stage.classList.remove('drag');
+      track.classList.remove('nodur');
+      var w = stage.clientWidth || 1;
+      if(Math.abs(moved) > Math.min(70, w * 0.18)) show(at + (moved < 0 ? 1 : -1));
+      else show(at);
+      moved = 0;
+    }
+    stage.addEventListener('pointerup', release);
+    stage.addEventListener('pointercancel', release);
+    stage.addEventListener('pointerleave', release);
+
+    // Arrow keys, once the carousel has been touched.
+    stage.setAttribute('tabindex','0');
+    stage.addEventListener('keydown', function(e){
+      if(e.key === 'ArrowLeft'){ show(at - 1); e.preventDefault(); }
+      if(e.key === 'ArrowRight'){ show(at + 1); e.preventDefault(); }
+    });
+
+    load();
+    return {reload:load};
+  }
+
+  /* ---- 1. A card at the foot of the Contrade tab -------------------------- */
+  function addTabCard(){
+    var panel = document.getElementById('contrade');
+    if(!panel || document.getElementById('cencioTab')) return true;
+    var card = document.createElement('div');
+    card.className = 'card';
+    card.id = 'cencioTab';
+    card.style.marginTop = '14px';
+    card.innerHTML =
+        '<h2>Drappelloni won</h2>'
+      + '<p class="note" style="margin-top:-6px">Every banner this contrada has taken home, '
+      + 'as photographed by the archive. Swipe or drag the image sideways, or use the arrows. '
+      + 'Pick a different contrada on the left.</p>'
+      + '<div id="cencioTabHost"></div>';
+    panel.appendChild(card);
+    // Open on whoever won most recently — the banner people will look for first.
+    var latest = bannerRaces.find(function(r){ return r.v; });
+    carousel(document.getElementById('cencioTabHost'),
+             latest && latest.v ? latest.v[1] : 0, {pick:true});
+    return true;
+  }
+
+  /* ---- 2. Inside every contrada sheet ------------------------------------ */
+  function addToSheet(idx){
+    var body = document.getElementById('modalBody');
+    if(!body || body.querySelector('.cencsheet')) return;
+    var wrap = document.createElement('div');
+    wrap.className = 'cencsheet';
+    wrap.innerHTML = '<h4>Drappelloni won</h4><div class="host"></div>';
+    // After the victories table if there is one, otherwise at the end.
+    var tables = body.querySelectorAll('h4');
+    var anchor = null;
+    for(var i = 0; i < tables.length; i++){
+      if(/victories since/i.test(tables[i].textContent)) anchor = tables[i];
+    }
+    if(anchor){
+      var block = anchor.nextElementSibling;
+      while(block && block.tagName !== 'H4' && block.nextElementSibling
+            && block.nextElementSibling.tagName !== 'H4') block = block.nextElementSibling;
+      (block || anchor).insertAdjacentElement('afterend', wrap);
+    } else body.appendChild(wrap);
+    carousel(wrap.querySelector('.host'), idx, {});
+  }
+
+  var prevShow = window.showContrada;
+  if(typeof prevShow === 'function'){
+    window.showContrada = function(idx){
+      var r = prevShow.apply(this, arguments);
+      try { addToSheet(idx); } catch(e){}
+      return r;
+    };
+  }
+
+  /* ---- 3. A contrada filter on the Drappelloni tab ------------------------ */
+  function addBannerFilter(){
+    var sortSel = document.getElementById('bannerSort');
+    if(!sortSel || document.getElementById('bannerCo')) return true;
+    var box = document.createElement('div');
+    box.className = 'yearpick';
+    box.innerHTML = '<label for="bannerCo">Contrada</label>'
+                  + '<select id="bannerCo"><option value="">All seventeen</option>'
+                  + C.map(function(c,i){ return '<option value="'+i+'">'+c.name+'</option>'; }).join('')
+                  + '</select>';
+    sortSel.closest('.yearpick').insertAdjacentElement('beforebegin', box);
+
+    var sel = document.getElementById('bannerCo');
+    var count = document.getElementById('bannerCount');
+
+    // renderBanners() is global and rebuilds the grid from scratch, so rather
+    // than reimplement it, let it run and then hide what does not match. The
+    // count line is rewritten to match what is actually on screen.
+    function apply(){
+      var want = sel.value === '' ? null : C[+sel.value].name;
+      var cards = document.querySelectorAll('#bannerGrid .banner-card');
+      var shown = 0;
+      cards.forEach(function(c){
+        var w = (c.querySelector('.bw') || {}).textContent || '';
+        var ok = !want || w.trim() === want;
+        c.style.display = ok ? '' : 'none';
+        if(ok) shown++;
+      });
+      if(want && count){
+        count.innerHTML = '<strong>' + shown + '</strong> banner' + (shown === 1 ? '' : 's')
+                        + ' won by <strong>' + want + '</strong> in this range'
+                        + (shown ? '' : ' — try widening the century or the starting year');
+      }
+    }
+
+    var orig = window.renderBanners;
+    if(typeof orig === 'function'){
+      window.renderBanners = function(){ var r = orig.apply(this, arguments); apply(); return r; };
+    }
+    // The tab's own three controls call the original by reference, so also
+    // re-apply after any of them changes.
+    ['bannerCent','bannerFrom','bannerSort'].forEach(function(id){
+      var el = document.getElementById(id);
+      if(el) el.addEventListener('change', function(){ setTimeout(apply, 0); });
+    });
+    sel.addEventListener('change', function(){
+      if(typeof orig === 'function') orig();      // restore the full count line
+      apply();
+    });
+    apply();
+    return true;
+  }
+
+  function run(){
+    var ok = true;
+    try { ok = addTabCard() && ok; } catch(e){ ok = false; }
+    try { ok = addBannerFilter() && ok; } catch(e){ ok = false; }
+    return ok;
+  }
+  if(!run()){
+    var t = 0, iv = setInterval(function(){ if(run() || ++t > 40) clearInterval(iv); }, 200);
+  }
+})();
+</script>
+
 <script>
 /* ---------------------------------------------------------------------------
    Register the service worker. This is what makes the dashboard installable
