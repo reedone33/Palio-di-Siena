@@ -8010,6 +8010,379 @@ svg.leaflet-image-layer.leaflet-interactive path {
 })();
 </script>
 
+<!-- ==========================================================================
+     v33 — A FRONT DOOR
+     --------------------------------------------------------------------------
+     Three changes.
+
+     1. A HOME PANEL, and the page now lands on it. It carries the one thing a
+        reader wants first — which Palio is next and what has just happened —
+        and four big tappable figures that jump to the section holding the
+        detail. The figures are *cloned from the ones the Next Palio tab already
+        renders*, so they cannot drift out of step with it, and they keep their
+        existing data-tab / data-scroll attributes, which the page's own
+        delegated handler already knows how to follow.
+
+     2. THE MENU BECOMES A HAMBURGER. Eight tabs across the top is a lot of
+        chrome on a phone. The tab strip is hidden — not removed, because
+        `goTab()` still toggles `.tab.on` and the drawer reads that to show
+        where you are — and replaced by a slim bar: the wordmark on the left,
+        which is also the way home, and the button on the right.
+
+     3. THE ATTRIBUTION. "Data scraped from" was both ungracious and inaccurate
+        — some of it is the news layer, the Comune, the contrade's own sites.
+        Rewritten to say what is actually true, and to thank the archive rather
+        than describe a method.
+     ========================================================================== -->
+<style>
+  /* ---- The slim top bar ---------------------------------------------------- */
+  .topbar{position:sticky;top:0;z-index:70;display:flex;align-items:center;gap:12px;
+        margin:0 -20px 18px;padding:10px 20px;
+        background:rgba(20,14,11,.72);
+        -webkit-backdrop-filter:blur(18px) saturate(140%);
+                backdrop-filter:blur(18px) saturate(140%);
+        border-bottom:1px solid rgba(255,255,255,.12)}
+  .topbar .mark{font-weight:700;font-size:15px;letter-spacing:.2px;cursor:pointer;
+        background:none;border:none;color:var(--text);font-family:inherit;padding:0}
+  .topbar .mark span{color:var(--accent-2)}
+  .topbar .where{font-size:12.5px;color:var(--muted);flex:1}
+  .topbar .where:before{content:'/ ';opacity:.5}
+  .burger{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);
+        border-radius:9px;width:40px;height:36px;cursor:pointer;display:flex;
+        flex-direction:column;justify-content:center;align-items:center;gap:4px;padding:0}
+  .burger:hover{border-color:var(--accent)}
+  .burger i{display:block;width:17px;height:2px;background:var(--text);border-radius:2px}
+  .burger.on i:nth-child(1){transform:translateY(6px) rotate(45deg)}
+  .burger.on i:nth-child(2){opacity:0}
+  .burger.on i:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+  .burger i{transition:transform .18s,opacity .18s}
+  nav.tabs{display:none !important}
+
+  /* ---- The drawer --------------------------------------------------------- */
+  .navback{position:fixed;inset:0;z-index:80;background:rgba(8,6,5,.55);
+        -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);
+        opacity:0;pointer-events:none;transition:opacity .18s}
+  .navback.on{opacity:1;pointer-events:auto}
+  .drawer{position:fixed;top:0;right:0;bottom:0;z-index:81;width:min(330px,86vw);
+        background:rgba(24,17,13,.92);
+        -webkit-backdrop-filter:blur(20px) saturate(140%);
+                backdrop-filter:blur(20px) saturate(140%);
+        border-left:1px solid rgba(255,255,255,.13);
+        transform:translateX(100%);transition:transform .22s cubic-bezier(.22,.61,.36,1);
+        padding:16px 14px;overflow-y:auto}
+  .drawer.on{transform:none}
+  .drawer h3{margin:4px 6px 12px;font-size:11px;letter-spacing:1px;text-transform:uppercase;
+        color:var(--muted);font-weight:700}
+  .drawer a{display:block;padding:11px 12px;border-radius:10px;text-decoration:none;
+        color:var(--text);border:1px solid transparent}
+  .drawer a:hover{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.12)}
+  .drawer a.on{background:rgba(207,95,40,.18);border-color:rgba(232,137,79,.45)}
+  .drawer a b{display:block;font-size:14.5px}
+  .drawer a span{display:block;font-size:11.5px;color:var(--muted);margin-top:2px}
+  .drawer .close{position:absolute;top:14px;right:14px;background:none;border:none;
+        color:var(--muted);font-size:24px;line-height:1;cursor:pointer}
+  .drawer .close:hover{color:var(--text)}
+
+  /* ---- Home --------------------------------------------------------------- */
+  #home .hero h2{font-size:26px;margin:2px 0 4px;letter-spacing:-.3px}
+  #home .hero .lede{font-size:14.5px}
+  #home .jump{display:grid;gap:12px;margin-top:16px;
+        grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+  #home .jump .stat{cursor:pointer;padding:16px 16px 14px;border-radius:12px;text-align:left}
+  #home .jump .stat b{font-size:32px;line-height:1.05;display:block}
+  #home .jump .stat span{font-size:11px;letter-spacing:.8px;display:block;margin-top:6px}
+  #home .headline .nmeta{font-size:11.5px;color:var(--muted);margin-bottom:4px}
+  #home .headline .ntitle{font-size:17px;line-height:1.35;font-weight:600}
+  #home .headline .ntitle a{color:var(--text);text-decoration:none}
+  #home .headline .ntitle a:hover{color:var(--accent-2)}
+  #home .headline .nsum{margin-top:6px;font-size:13.5px;color:var(--muted);line-height:1.5}
+  #home .more{margin-top:14px;border-top:1px solid rgba(255,255,255,.08);padding-top:12px}
+  #home .more .row{display:flex;gap:10px;padding:7px 0;font-size:13px;align-items:baseline}
+  #home .more .row .d{color:var(--muted);font-size:11.5px;white-space:nowrap;min-width:74px}
+  #home .more .row a{color:var(--text);text-decoration:none}
+  #home .more .row a:hover{color:var(--accent-2)}
+  #home .allnews{display:inline-block;margin-top:12px;font-size:12.5px;cursor:pointer;
+        color:var(--accent-2)}
+  #home .explore{display:grid;gap:10px;margin-top:2px;
+        grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+  #home .explore button{background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.11);
+        border-radius:11px;padding:12px 14px;text-align:left;cursor:pointer;
+        color:var(--text);font-family:inherit}
+  #home .explore button:hover{border-color:var(--accent);background:rgba(207,95,40,.14)}
+  #home .explore b{display:block;font-size:14px}
+  #home .explore span{display:block;font-size:11.5px;color:var(--muted);margin-top:3px}
+  footer a{color:var(--accent-2)}
+</style>
+<script>
+(function(){
+  'use strict';
+
+  var PAGES = [
+    {id:'home',     name:'Home',          blurb:'The next Palio at a glance'},
+    {id:'next',     name:'Next Palio',    blurb:'Field, mounts, rivalries, race week'},
+    {id:'overview', name:'Overview',      blurb:'Wins, droughts, the shape of the record'},
+    {id:'contrade', name:'Contrade',      blurb:'The seventeen, the map, their banners'},
+    {id:'fantini',  name:'Jockeys',       blurb:'Fantini since 1762'},
+    {id:'cavalli',  name:'Horses',        blurb:'Every named horse'},
+    {id:'races',    name:'Recent Races',  blurb:'The last forty Palii'},
+    {id:'banners',  name:'Drappelloni',   blurb:'The painted silk, race by race'},
+    {id:'facts',    name:'Curiosities',   blurb:'Oddities the numbers throw up'}
+  ];
+
+  /* ---- 1. The home panel ------------------------------------------------- */
+  function makePanel(){
+    if(document.getElementById('home')) return true;
+    var next = document.getElementById('next');
+    if(!next || !next.parentNode) return false;
+
+    var nav = document.querySelector('nav.tabs');
+    if(nav && !nav.querySelector('[data-p="home"]')){
+      var btn = document.createElement('button');
+      btn.className = 'tab';
+      btn.dataset.p = 'home';
+      btn.textContent = 'Home';
+      btn.addEventListener('click', function(){ goTab('home'); });
+      nav.insertBefore(btn, nav.firstChild);
+    }
+
+    var sec = document.createElement('section');
+    sec.className = 'panel';
+    sec.id = 'home';
+    sec.innerHTML = '<div class="card hero" id="homeHero"></div>'
+                  + '<div class="card headline" id="homeNews" style="margin-top:14px"></div>'
+                  + '<div class="card" style="margin-top:14px">'
+                  +   '<h2>Explore</h2><div class="explore" id="homeExplore"></div></div>';
+    next.parentNode.insertBefore(sec, next);
+    return true;
+  }
+
+  function fillHome(){
+    var hero = document.getElementById('homeHero');
+    var head = document.getElementById('nextHead');
+    if(!hero || !head || hero.dataset.done) return false;
+    var stats = head.querySelectorAll('.stat');
+    if(!stats.length) return false;              // Next Palio has not rendered yet
+    hero.dataset.done = '1';
+
+    var eyebrow = head.querySelector('.eyebrow');
+    var title   = head.querySelector('h2');
+    var lede    = head.querySelector('.lede');
+    var rain    = head.querySelector('.rainnote');
+
+    hero.innerHTML =
+        '<div class="eyebrow">' + (eyebrow ? eyebrow.textContent : 'The next Palio') + '</div>'
+      + '<h2>' + (title ? title.textContent : 'Palio di Siena') + '</h2>'
+      + '<p class="lede">' + (lede ? lede.innerHTML : '') + '</p>'
+      + (rain ? '<div class="rainnote">' + rain.innerHTML + '</div>' : '')
+      + '<div class="jump" id="homeJump"></div>';
+
+    // The four figures, cloned so they can never disagree with the tab they
+    // came from, and still carrying the attributes that make them navigate.
+    var jump = document.getElementById('homeJump');
+    stats.forEach(function(s){
+      var c = s.cloneNode(true);
+      c.classList.add('lnk');
+      if(!c.dataset.tab){ c.dataset.tab = 'next'; }
+      jump.appendChild(c);
+    });
+    return true;
+  }
+
+  // Re-runnable on purpose. Other patches unshift fresher items into NEWS on
+  // DOMContentLoaded — after this block parses — so rendering once would leave
+  // the home page leading on yesterday's headline. It redraws whenever the top
+  // item changes, and reports done only when the news layer has settled.
+  var lastTop = null, newsSettled = 0;
+  function fillNews(){
+    var box = document.getElementById('homeNews');
+    if(!box) return false;
+    if(typeof NEWS === 'undefined' || !NEWS.items || !NEWS.items.length) return false;
+    if(NEWS.items[0].url === lastTop) return ++newsSettled > 8;
+    lastTop = NEWS.items[0].url;
+    newsSettled = 0;
+
+    var d = function(iso){
+      return new Date(iso + 'T12:00:00')
+        .toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'});
+    };
+    var top = NEWS.items[0];
+    var rest = NEWS.items.slice(1, 4);
+
+    box.innerHTML =
+        '<h2>The latest</h2>'
+      + '<div class="nmeta">' + d(top.date) + ' · ' + top.source + '</div>'
+      + '<div class="ntitle"><a href="' + top.url + '" target="_blank" rel="noopener">'
+      +   top.title + '</a></div>'
+      + '<div class="nsum">' + top.summary + '</div>'
+      + (rest.length ? '<div class="more">' + rest.map(function(n){
+            return '<div class="row"><span class="d">' + d(n.date) + '</span>'
+                 + '<a href="' + n.url + '" target="_blank" rel="noopener">' + n.title + '</a></div>';
+          }).join('') + '</div>' : '')
+      + '<span class="allnews lnk" data-tab="next" data-scroll="newsNext">'
+      +   'All the news, and what happens next &#8250;</span>';
+    // Never "done" merely because something rendered: more than one later
+    // patch may unshift fresher items, so wait for the top to hold still.
+    return false;
+  }
+
+  function fillExplore(){
+    var box = document.getElementById('homeExplore');
+    if(!box || box.dataset.done) return false;
+    box.dataset.done = '1';
+    box.innerHTML = PAGES.filter(function(p){ return p.id !== 'home'; }).map(function(p){
+      return '<button data-tab="' + p.id + '"><b>' + p.name + '</b><span>'
+           + p.blurb + '</span></button>';
+    }).join('');
+    return true;
+  }
+
+  /* ---- 2. Top bar and drawer --------------------------------------------- */
+  function chrome(){
+    if(document.querySelector('.topbar')) return true;
+    var nav = document.querySelector('nav.tabs');
+    if(!nav) return false;
+
+    var bar = document.createElement('div');
+    bar.className = 'topbar';
+    bar.innerHTML =
+        '<button class="mark">Palio di <span>Siena</span></button>'
+      + '<span class="where" id="whereNow"></span>'
+      + '<button class="burger" id="burger" aria-label="Menu" aria-expanded="false">'
+      +   '<i></i><i></i><i></i></button>';
+    nav.parentNode.insertBefore(bar, nav);
+
+    var back = document.createElement('div');
+    back.className = 'navback';
+    var drawer = document.createElement('nav');
+    drawer.className = 'drawer';
+    drawer.innerHTML = '<button class="close" aria-label="Close">&times;</button>'
+      + '<h3>Go to</h3>'
+      + PAGES.map(function(p){
+          return '<a href="#" data-go="' + p.id + '"><b>' + p.name + '</b><span>'
+               + p.blurb + '</span></a>';
+        }).join('');
+    document.body.appendChild(back);
+    document.body.appendChild(drawer);
+
+    function mark(){
+      var on = document.querySelector('.panel.on');
+      var id = on ? on.id : 'home';
+      var page = PAGES.filter(function(p){ return p.id === id; })[0];
+      var w = document.getElementById('whereNow');
+      if(w) w.textContent = page && page.id !== 'home' ? page.name : '';
+      drawer.querySelectorAll('a').forEach(function(a){
+        a.classList.toggle('on', a.dataset.go === id);
+      });
+    }
+    function open(v){
+      back.classList.toggle('on', v);
+      drawer.classList.toggle('on', v);
+      var b = document.getElementById('burger');
+      b.classList.toggle('on', v);
+      b.setAttribute('aria-expanded', v ? 'true' : 'false');
+      if(v) mark();
+    }
+
+    document.getElementById('burger').addEventListener('click', function(){
+      open(!drawer.classList.contains('on'));
+    });
+    back.addEventListener('click', function(){ open(false); });
+    drawer.querySelector('.close').addEventListener('click', function(){ open(false); });
+    drawer.addEventListener('click', function(e){
+      var a = e.target.closest('a[data-go]');
+      if(!a) return;
+      e.preventDefault();
+      goTab(a.dataset.go);
+      open(false);
+    });
+    bar.querySelector('.mark').addEventListener('click', function(){ goTab('home'); });
+    document.addEventListener('keydown', function(e){
+      if(e.key === 'Escape' && drawer.classList.contains('on')) open(false);
+    });
+
+    // goTab does not announce itself, so wrap it to keep the bar in step.
+    var prev = window.goTab;
+    if(typeof prev === 'function'){
+      window.goTab = function(){
+        var r = prev.apply(this, arguments);
+        try { mark(); } catch(e){}
+        return r;
+      };
+    }
+    mark();
+    return true;
+  }
+
+  /* ---- 3. The attribution ------------------------------------------------- */
+  function credit(){
+    var f = document.querySelector('footer');
+    if(!f || f.dataset.v33) return false;
+    f.dataset.v33 = '1';
+    f.innerHTML =
+        '<p>The information shown in this web app is drawn primarily from '
+      + '<a href="https://www.ilpalio.org/" target="_blank" rel="noopener">ilpalio.org</a> — '
+      + 'the non-profit Palio archive curated by Orlando Papei and authorised by the '
+      + 'Consorzio per la Tutela del Palio di Siena — together with other public sources '
+      + 'on the web, including Siena’s daily press and the seventeen contrade’s own sites.</p>'
+      + '<p>On official matters the authorities are the '
+      + '<a href="https://www.comune.siena.it/index.php/" target="_blank" rel="noopener">Comune di Siena</a>, '
+      + 'for ordinances, the contrada draw and the admitted-horse lists, and the '
+      + '<a href="https://www.magistratodellecontrade.it/" target="_blank" rel="noopener">Magistrato delle Contrade</a>, '
+      + 'for anything settled between the contrade rather than by the city. Territory '
+      + 'boundaries come from OpenStreetMap, &copy; OpenStreetMap contributors, '
+      + '<a href="https://opendatacommons.org/licenses/odbl/" target="_blank" rel="noopener">ODbL</a>.</p>'
+      + '<p>With thanks to all of them. This is an unofficial personal project, and any '
+      + 'mistake in how their material has been read or presented is mine, not theirs.</p>';
+    return true;
+  }
+
+  /* The news layer stamps a "News layer as of…" line into the footer at load,
+     before the later patches refresh NEWS — so it sat two days stale. Its own
+     step, because it cannot run until that line exists AND the news has
+     settled. */
+  var lastGen = null, settled = 0;
+  function freshStamp(){
+    var f = document.querySelector('footer');
+    var stamp = f && f.querySelector('.newsstamp');
+    if(!stamp) return false;
+    if(typeof NEWS === 'undefined' || !NEWS.generated) return false;
+    if(NEWS.generated !== lastGen){
+      lastGen = NEWS.generated;
+      settled = 0;
+      stamp.textContent = 'News layer as of ' + new Date(NEWS.generated).toLocaleString('en-GB',
+        {day:'numeric', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit'})
+        + ' — a snapshot taken when this page was built, not a live feed.';
+      return false;
+    }
+    // Several patches may refresh NEWS in turn; only stop once the value has
+    // held still for a few checks rather than trusting the first one seen.
+    return ++settled > 8;
+  }
+
+  var STEPS = [makePanel, fillHome, fillNews, fillExplore, chrome, credit, freshStamp];
+  var done  = STEPS.map(function(){ return false; });
+  var landed = false;
+
+  function run(){
+    var all = true;
+    STEPS.forEach(function(fn, i){
+      if(done[i]) return;
+      try { done[i] = !!fn(); } catch(e){ done[i] = true; }
+      if(!done[i]) all = false;
+    });
+    // Land on home once it actually holds something.
+    if(!landed && done[1] && done[4]){
+      landed = true;
+      try { goTab('home'); window.scrollTo(0,0); } catch(e){}
+    }
+    return all;
+  }
+  if(!run()){
+    var n = 0, iv = setInterval(function(){ if(run() || ++n > 60) clearInterval(iv); }, 150);
+  }
+})();
+</script>
+
 <script>
 /* ---------------------------------------------------------------------------
    Register the service worker. This is what makes the dashboard installable
