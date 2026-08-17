@@ -7414,6 +7414,356 @@ svg.leaflet-image-layer.leaflet-interactive path {
 })();
 </script>
 
+<!-- ==========================================================================
+     v29 — THE CONTRADA TABLE, PUT RIGHT
+     --------------------------------------------------------------------------
+     Two faults, one visible and one that had been quietly broken since the news
+     layer was added.
+
+     1. LAYOUT. Making every heading sortable (v25) added a caret and, with it,
+        `white-space:nowrap` and 20px of right padding on every `th`. A long
+        heading then sets the column width: "Runs since 1762" forced 172px and
+        "Races waiting" 162px for columns holding three characters, which pushed
+        the numbers far away from the names and left the table looking sprung.
+        Headings may now wrap, and an explicit colgroup fixes the proportions.
+
+     2. THE EMPTY "LATEST" COLUMN. It read the contrada's name with
+        `tr.cells[0].textContent`, and that cell holds an SVG shield whose
+        letter lands in textContent — so the name came out as "O Oca" and never
+        matched a news item. Every one of the seventeen cells was blank. This is
+        exactly the trap the skill records under "rendered text is not the text
+        you wrote"; the fix is to strip the SVG before reading.
+
+     The column is filled where there is news and removed entirely when there is
+     none, rather than sitting there empty.
+     ========================================================================== -->
+<style>
+  /* Headings may wrap; a two-line heading is better than a column three times
+     wider than its data. The caret keeps its room on the first line. */
+  #tContrade th{white-space:normal;line-height:1.25;vertical-align:bottom}
+  #tContrade th.sortable{padding-right:18px}
+  #tContrade td{vertical-align:middle}
+  #tContrade .co{display:inline-flex;align-items:center;gap:8px}
+  /* Numbers keep to their own width instead of drifting to the far edge. */
+  #tContrade td.num, #tContrade th.num{text-align:right;white-space:nowrap}
+  /* A date on two lines reads as two dates. */
+  #tContrade tbody td:nth-child(5){white-space:nowrap}
+  #tContrade .sitecell{display:inline-block;max-width:100%;overflow:hidden;
+        text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom}
+  #tContrade .latestcell a{display:inline-block;max-width:100%;overflow:hidden;
+        text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom}
+  @media(max-width:760px){
+    #tContrade{min-width:720px}
+    #contrade .glancewrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  }
+</style>
+<script>
+(function(){
+  'use strict';
+
+  // Widths as percentages, in table order. The last one is dropped with the
+  // column when there is no news to show.
+  var COLS = ['19%','6%','9%','7%','11%','10%','18%','20%'];
+
+  // The contrada name, without the shield's letter.
+  function nameOf(tr){
+    var cell = tr.cells[0]; if(!cell) return '';
+    var c = cell.cloneNode(true);
+    c.querySelectorAll('svg').forEach(function(s){ s.remove(); });
+    return (c.textContent || '').replace(/\s+/g,' ').trim();
+  }
+
+  function fillLatest(t){
+    if(typeof newsFor !== 'function') return 0;
+    var filled = 0;
+    var head = t.tHead && t.tHead.rows[0];
+    var idx  = -1;
+    if(head) for(var i=0;i<head.cells.length;i++)
+      if(head.cells[i].classList.contains('latesth')) idx = i;
+    if(idx < 0) return 0;
+
+    [].forEach.call(t.tBodies[0].rows, function(tr){
+      var td = tr.cells[idx]; if(!td) return;
+      // Prefer the most specific story: an item naming two contrade says more
+      // about this one than the segnatura item that names all ten. Ties break
+      // on recency, which is the order newsFor already returns.
+      var hits = newsFor('contrade', nameOf(tr));
+      var n = hits.slice().sort(function(a,b){
+        return (a.contrade || []).length - (b.contrade || []).length;
+      })[0];
+      if(!n){ td.innerHTML = ''; return; }
+      filled++;
+      var title = n.title.length > 44 ? n.title.slice(0,44) + '…' : n.title;
+      td.innerHTML = '<span class="latestcell"><a href="' + n.url + '" target="_blank" '
+                   + 'rel="noopener" onclick="event.stopPropagation()" title="'
+                   + n.title.replace(/"/g,'&quot;') + '">' + title + '</a></span>';
+    });
+    return filled;
+  }
+
+  function dropLatest(t){
+    var head = t.tHead && t.tHead.rows[0]; if(!head) return;
+    var idx = -1;
+    for(var i=0;i<head.cells.length;i++)
+      if(head.cells[i].classList.contains('latesth')) idx = i;
+    if(idx < 0) return;
+    head.deleteCell(idx);
+    [].forEach.call(t.tBodies[0].rows, function(tr){
+      if(tr.cells[idx]) tr.deleteCell(idx);
+    });
+  }
+
+  function sizeColumns(t){
+    var old = t.querySelector('colgroup');
+    if(old) old.remove();
+    var n = t.tHead.rows[0].cells.length;
+    var widths = COLS.slice(0, n);
+    // If the Latest column went, give its share back to Site, the one column
+    // that can always use more room.
+    if(n === COLS.length - 1) widths[6] = '30%';
+    var cg = document.createElement('colgroup');
+    cg.innerHTML = widths.map(function(w){ return '<col style="width:' + w + '">'; }).join('');
+    t.insertBefore(cg, t.firstChild);
+  }
+
+  function wrapForScroll(t){
+    if(t.parentElement && t.parentElement.classList.contains('glancewrap')) return;
+    var w = document.createElement('div');
+    w.className = 'glancewrap';
+    t.parentNode.insertBefore(w, t);
+    w.appendChild(t);
+  }
+
+  function fix(force){
+    var t = document.getElementById('tContrade');
+    if(!t || !t.tHead || !t.tBodies[0]) return false;
+    if(t.dataset.v29 && t.dataset.v29 === String(t.tBodies[0].rows.length)) return true;
+    // The news layer appends its "Latest" column on DOMContentLoaded, which is
+    // after this script parses. Sizing the columns before it arrives would size
+    // seven and leave the eighth unaccounted for, so wait for it — but not
+    // forever, since on a page with no news layer it will never come.
+    if(!force && !t.tHead.rows[0].querySelector('.latesth')) return false;
+    t.dataset.v29 = String(t.tBodies[0].rows.length);
+
+    if(fillLatest(t) === 0) dropLatest(t);
+    sizeColumns(t);
+    wrapForScroll(t);
+    return true;
+  }
+
+  // Sorting reorders rows rather than rebuilding them, so the cells survive;
+  // but the news layer re-adds its column after a sort, so re-run then too.
+  document.addEventListener('click', function(e){
+    var th = e.target.closest && e.target.closest('#tContrade th');
+    if(!th) return;
+    setTimeout(function(){
+      var t = document.getElementById('tContrade');
+      if(!t) return;
+      delete t.dataset.v29;
+      fix();
+    }, 20);
+  }, true);
+
+  if(!fix()){
+    var n = 0;
+    var iv = setInterval(function(){
+      n++;
+      if(fix(n > 25) || n > 30) clearInterval(iv);   // after ~5s, proceed regardless
+    }, 200);
+  }
+})();
+</script>
+
+<!-- ==========================================================================
+     v30 — THE TEN IN THIS PALIO, ON THE JOCKEYS AND HORSES TABS
+     --------------------------------------------------------------------------
+     A toggle on each of the two tabs swaps the historical table for the ten
+     riders (or ten horses) of the current Palio.
+
+     It has to SWAP rather than FILTER, and that is the whole design decision.
+     "Jockey records" is the top forty by wins and "Horse records" the named-horse
+     era; of this field only Tittia, Scompiglio and Gingillo appear in the first,
+     and not one of the ten horses appears in the second — every one of them
+     debuted after the table's cut. Filtering would have shown three rows on one
+     tab and none on the other, which reads as a bug. So the button builds its
+     own ten-row table from the same MOUNT data the Next Palio tab uses.
+
+     WHAT HAPPENS AFTER THE RACE, which is what Reed asked about: nothing. The
+     button stays, and its wording moves from "Running in" to "Ran in" once the
+     race date has passed — the comparison is made at page load, so a build the
+     morning after says the right thing on its own. The ten names only change
+     when MOUNT changes, which is at the next Tratta. One edit, in one place,
+     updates the Next Palio tab and both of these together.
+     ========================================================================== -->
+<style>
+  .fieldbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:-4px 0 12px}
+  .fieldbar button{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);
+        color:var(--text);border-radius:8px;padding:7px 13px;font:inherit;font-size:12.5px;
+        cursor:pointer}
+  .fieldbar button:hover{border-color:var(--accent);color:var(--accent-2)}
+  .fieldbar button.on{background:var(--accent);border-color:var(--accent);color:#1a1006;
+        font-weight:600}
+  .fieldbar .when{font-size:12px;color:var(--muted)}
+  .fieldtable .who{cursor:pointer;font-weight:600}
+  .fieldtable .who:hover{color:var(--accent-2);text-decoration:underline;text-underline-offset:3px}
+  .fieldtable .real{font-size:11px;color:var(--muted);font-style:italic;display:block}
+  .fieldtable .co{display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+  .fieldtable .debut{color:var(--accent-2)}
+  .fieldnote{font-size:12px;color:var(--muted);margin:10px 0 0;line-height:1.5}
+</style>
+<script>
+(function(){
+  'use strict';
+
+  var MOUNT = window.PALIO_MOUNT;
+  if(!MOUNT) return;
+
+  /* The race this field belongs to. NEXT.date is the scheduled date; the 2026
+     Assunta was moved a day by rain, so the label carries the day it is
+     actually run. Both move together at the next Tratta. */
+  var RACE_ISO   = '2026-08-17';
+  var RACE_LABEL = 'the Palio of 17 August 2026';
+
+  function past(){
+    var d = new Date(RACE_ISO + 'T23:59:00');
+    return new Date() > d;
+  }
+  function ord(n){
+    var s = ['th','st','nd','rd'], v = n % 100;
+    return n + (s[(v - 20) % 10] || s[v] || s[0]);
+  }
+  function record(palii, wins, debutWord){
+    if(palii <= 1) return '<span class="debut">' + debutWord + '</span>';
+    return ord(palii) + ' Palio' + (wins ? ' · ' + wins + ' win' + (wins === 1 ? '' : 's') : '');
+  }
+  function known(list, name){
+    try { return list.some(function(n){ return n.toUpperCase() === name.toUpperCase(); }); }
+    catch(e){ return false; }
+  }
+  function coIdx(key){
+    for(var i=0;i<C.length;i++) if(C[i].k === key) return i;
+    return -1;
+  }
+  // `shield` is a top-level function declaration in the original page, so it is
+  // reachable by name from this appended block — see the note in the skill about
+  // const not being on window while function declarations effectively are.
+  function shieldFor(i, size){
+    try { return shield(i, size); } catch(e){ return ''; }
+  }
+
+  // The ten, in the order the Next Palio tab lists them.
+  function field(){
+    var order = ((typeof NEXT !== 'undefined' ? NEXT.byRight : []) || [])
+          .concat((typeof NEXT !== 'undefined' ? NEXT.drawn : []) || []);
+    return order.filter(function(k){ return MOUNT[k]; }).map(function(k){
+      var m = MOUNT[k];
+      return {k:k, i:coIdx(k), h:m.h, hp:m.hp, hw:m.hw, f:m.f, fr:m.fr, fp:m.fp, fw:m.fw};
+    });
+  }
+
+  function coCell(r){
+    return '<span class="co">' + shieldFor(r.i, 22)
+         + '<span class="who" data-contrada="' + r.i + '">' + C[r.i].name + '</span></span>';
+  }
+
+  function jockeyTable(){
+    return '<table class="fieldtable"><thead><tr>'
+      +  '<th>Fantino</th><th>Contrada</th><th>Cavallo</th>'
+      +  '<th>This Palio</th><th class="num">Career wins</th>'
+      + '</tr></thead><tbody>'
+      + field().map(function(r){
+          var fl = known(RD.fn, r.f), hl = known(RD.hn, r.h);
+          return '<tr>'
+            + '<td><span class="who"' + (fl ? ' data-jockey="' + r.f + '"' : '') + '>' + r.f
+            +   '</span><span class="real">' + r.fr + '</span></td>'
+            + '<td>' + coCell(r) + '</td>'
+            + '<td><span class="' + (hl ? 'who' : '') + '"'
+            +   (hl ? ' data-horse="' + r.h + '"' : '') + '>' + r.h + '</span></td>'
+            + '<td data-sort="' + r.fp + '">' + record(r.fp, 0, 'his first') + '</td>'
+            + '<td class="num" data-sort="' + r.fw + '">' + r.fw + '</td>'
+            + '</tr>';
+        }).join('')
+      + '</tbody></table>';
+  }
+
+  function horseTable(){
+    return '<table class="fieldtable"><thead><tr>'
+      +  '<th>Cavallo</th><th>Contrada</th><th>Fantino</th>'
+      +  '<th>This Palio</th><th class="num">Career wins</th>'
+      + '</tr></thead><tbody>'
+      + field().map(function(r){
+          var fl = known(RD.fn, r.f), hl = known(RD.hn, r.h);
+          return '<tr>'
+            + '<td><span class="who"' + (hl ? ' data-horse="' + r.h + '"' : '') + '>' + r.h + '</span></td>'
+            + '<td>' + coCell(r) + '</td>'
+            + '<td><span class="' + (fl ? 'who' : '') + '"'
+            +   (fl ? ' data-jockey="' + r.f + '"' : '') + '>' + r.f + '</span></td>'
+            + '<td data-sort="' + r.hp + '">' + record(r.hp, 0, 'its first') + '</td>'
+            + '<td class="num" data-sort="' + r.hw + '">' + r.hw + '</td>'
+            + '</tr>';
+        }).join('')
+      + '</tbody></table>';
+  }
+
+  var NOTE = {
+    f: 'Career totals are the published figures for this Palio, checked against the '
+     + 'dashboard’s own records. Only three of these ten — Tittia, Scompiglio and Gingillo — '
+     + 'appear in the all-time table above; the rest have not yet won often enough to reach it.',
+    h: 'Horse records are counted from this dashboard’s own race table, complete from 2005. '
+     + 'None of these ten appears in the all-time table above: every one of them debuted after '
+     + 'the named-horse era it covers.'
+  };
+
+  function mount(tableId, kind){
+    var t = document.getElementById(tableId);
+    if(!t) return false;
+    var card = t.closest('.card');
+    if(!card || card.dataset.fieldbtn) return true;
+    card.dataset.fieldbtn = '1';
+
+    var verb = past() ? 'Ran in' : 'Running in';
+    var bar = document.createElement('div');
+    bar.className = 'fieldbar';
+    bar.innerHTML = '<button>' + (kind === 'f' ? 'The ten riding' : 'The ten running')
+                  + ' in this Palio</button>'
+                  + '<span class="when">' + verb + ' ' + RACE_LABEL + '</span>';
+
+    var holder = document.createElement('div');
+    holder.style.display = 'none';
+    holder.innerHTML = (kind === 'f' ? jockeyTable() : horseTable())
+                     + '<p class="fieldnote">' + NOTE[kind] + '</p>';
+
+    var scroll = t.closest('.scroll') || t.parentElement;
+    var h2 = card.querySelector('h2');
+    (h2 || card).insertAdjacentElement('afterend', bar);
+    scroll.insertAdjacentElement('afterend', holder);
+
+    var btn = bar.querySelector('button');
+    btn.addEventListener('click', function(){
+      var on = !btn.classList.contains('on');
+      btn.classList.toggle('on', on);
+      holder.style.display = on ? '' : 'none';
+      scroll.style.display = on ? 'none' : '';
+      // The historical table's own note only makes sense with that table.
+      var note = scroll.nextElementSibling;
+      while(note && note !== holder && note.tagName !== 'P') note = note.nextElementSibling;
+      var tail = holder.nextElementSibling;
+      if(tail && tail.tagName === 'P') tail.style.display = on ? 'none' : '';
+    });
+    return true;
+  }
+
+  function run(){
+    var a = mount('tJockeys', 'f');
+    var b = mount('tHorses',  'h');
+    return a && b;
+  }
+  if(!run()){
+    var n = 0, iv = setInterval(function(){ if(run() || ++n > 40) clearInterval(iv); }, 200);
+  }
+})();
+</script>
+
 <script>
 /* ---------------------------------------------------------------------------
    Register the service worker. This is what makes the dashboard installable
