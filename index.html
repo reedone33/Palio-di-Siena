@@ -8558,6 +8558,358 @@ svg.leaflet-image-layer.leaflet-interactive path {
 })();
 </script>
 
+<!-- ==========================================================================
+     v36 — THE RESULT
+     --------------------------------------------------------------------------
+     Nicchio won the Palio dell'Assunta on Tuesday 18 August 2026 — Tittia on
+     Anda e Bola — at the third attempt, after rain had taken the two previous
+     afternoons.
+
+     This block reports the race. It does NOT rewrite the statistics: the
+     victory tables, droughts and win rates still stand as of 8 August, because
+     they come from ilpalio.org and the archive had not published this race when
+     this build was made. Editing DD or DATA by hand to "fix" that would put
+     numbers on the page that no source backs, and the next proper scrape would
+     silently disagree with them. So the result is stated as news, the tables
+     say plainly that they predate it, and the figures move when the archive
+     does.
+
+     Everything derived from "the next Palio" flips to the past tense here: the
+     header, the home hero cloned from it, and the winner's row in the field.
+     ========================================================================== -->
+<style>
+  .resultnote{border-left:3px solid var(--accent);background:rgba(207,95,40,.12);
+        border-radius:0 8px 8px 0;padding:12px 15px;margin:0 0 14px;font-size:13px;
+        line-height:1.6}
+  .resultnote b{color:var(--accent-2)}
+  .resultnote .win{font-size:15px}
+  #nextField tr.winner{background:rgba(207,95,40,.13)}
+  #nextField tr.winner .n{color:var(--accent-2)}
+  .wonpill{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:20px;
+        background:var(--accent);color:#1a1006;font-size:10px;font-weight:700;
+        letter-spacing:.5px;text-transform:uppercase;vertical-align:middle}
+  .stale-note{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.5}
+</style>
+<script>
+(function(){
+  'use strict';
+
+  var WINNER = 'Nicchio';
+
+  // Starting order at the canapi, as published by the Comune di Siena.
+  var CANAPI = {Lupa:1, Chiocciola:2, Giraffa:3, Selva:4, Torre:5,
+                Istrice:6, Onda:7, Nicchio:8, Oca:9, Aquila:'rincorsa'};
+
+  var RESULT_HTML =
+      '<div class="win"><b>Il Nicchio.</b> Tittia — Giovanni Atzeni — on '
+    + '<b>Anda e Bola</b>, at the third attempt, after rain had taken Sunday and '
+    + 'Monday.</div><br>'
+    + 'Nicchio led from the canapi and stretched it away over three laps. It is the '
+    + 'contrada’s first Palio since <b>16 August 1998</b> — a wait of twenty-eight '
+    + 'years, and the longest of any contrada in this field.<br><br>'
+    + 'For Tittia it is a <b>thirteenth</b> victory, which draws him level with '
+    + 'Trecciolino and leaves him one behind Aceto’s fourteen. Having also won on '
+    + '3 July for Aquila, he takes the <em>cappotto</em> — both races in one year — '
+    + 'for the <b>fourth time</b>: 2013, 2019, 2022 and now 2026, more than any '
+    + 'jockey before him.<br><br>'
+    + 'The <em>mossa</em> was a nervous one, close to an hour at the ropes. After '
+    + 'the finish Tittia came off and fell into the crowd, briefly losing '
+    + 'consciousness; he was taken to Le Scotte, was conscious on arrival and no '
+    + 'serious injury has been reported. <b>Anda e Bola was unhurt.</b>';
+
+  var FRESH = [
+    {date:'2026-08-18', race:'2026-08-16', tag:'race', source:'Comune di Siena',
+     title:'Palio 18 agosto 2026, vince il Nicchio',
+     summary:'Official result: Nicchio, with Giovanni Atzeni (Tittia) on Anda e Bola, leading from the start and increasing the gap to the third lap.',
+     url:'https://www.comune.siena.it/novita/palio-18-agosto-2026-vince-il-nicchio',
+     contrade:['Nicchio'], fantini:['TITTIA'], cavalli:['Anda e Bola']},
+    {date:'2026-08-18', race:'2026-08-16', tag:'race', source:'La Nazione',
+     title:'La tredicesima volta di Tittia, il re del Palio è lui. Nella storia con il quarto cappotto',
+     summary:'A thirteenth win draws Tittia level with Trecciolino, one short of Aceto; his fourth cappotto — 2013, 2019, 2022, 2026 — is a record.',
+     url:'https://www.lanazione.it/siena/cronaca/la-tredicesima-volta-di-tittia-il-re-del-palio-e-lui-nella-storia-con-il-quarto-cappotto-tejdctyd',
+     contrade:['Nicchio','Aquila'], fantini:['TITTIA'], cavalli:['Anda e Bola','Diodoro']},
+    {date:'2026-08-18', race:'2026-08-16', tag:'aftermath', source:'DIRE',
+     title:'Palio di Siena, trionfa il Nicchio con Tittia-Anda e Bola. Ma al traguardo il fantino cade e perde conoscenza',
+     summary:'Past the line the jockey came off into the crowd and briefly lost consciousness; conscious on arrival at Le Scotte, the horse unhurt.',
+     url:'https://www.dire.it/18-08-2026/1262492-palio-siena-trionfa-nicchio-con-tittia-anda-bola-ma-traguardo-fantino-cade-perde-conoscenza/',
+     contrade:['Nicchio'], fantini:['TITTIA'], cavalli:['Anda e Bola']},
+    {date:'2026-08-18', race:'2026-08-16', tag:'race', source:'Firenze Post',
+     title:'Palio di Siena agosto 2026: Nicchio vince con Tittia dopo 28 anni',
+     summary:'Nicchio had not won since 1998; the race finally ran at the third attempt after two postponements for rain.',
+     url:'https://www.firenzepost.it/2026/08/18/palio-di-siena-agosto-2026-nicchio-vince-con-tittia-dopo-28-anni-cappotto-per-il-fantino/',
+     contrade:['Nicchio'], fantini:['TITTIA'], cavalli:['Anda e Bola']}
+  ];
+
+  /* ---- 1. The header, in the past tense --------------------------------- */
+  function head(){
+    var h = document.getElementById('nextHead');
+    if(!h || h.dataset.v36) return false;
+    var lede = h.querySelector('.lede');
+    if(!lede) return false;
+    h.dataset.v36 = '1';
+
+    var eyebrow = h.querySelector('.eyebrow');
+    if(eyebrow) eyebrow.textContent = 'The last Palio';
+
+    lede.innerHTML = '<strong>18 August 2026 — the Nicchio won</strong>, twice '
+                   + 'postponed by rain and run at the third attempt.';
+
+    var note = h.querySelector('.rainnote');
+    if(note){ note.className = 'resultnote'; note.innerHTML = RESULT_HTML; }
+    else lede.insertAdjacentHTML('afterend', '<div class="resultnote">' + RESULT_HTML + '</div>');
+
+    // "Days to go" has nothing left to count.
+    var st = h.querySelector('.stat');
+    if(st){
+      var b = st.querySelector('b'), sp = st.querySelector('span');
+      if(b)  b.textContent = '28';
+      if(sp) sp.textContent = 'years Nicchio waited';
+      st.dataset.tab = 'contrade';
+      st.dataset.scroll = 'tContrade';
+      st.title = 'Jump to the contrada table';
+    }
+
+    var tail = document.createElement('p');
+    tail.className = 'stale-note';
+    tail.innerHTML = 'The victory totals, droughts and win rates elsewhere on this page '
+      + 'still stand as of <strong>8 August 2026</strong> and do not yet include this '
+      + 'race — ilpalio.org had not published it when this build was made. They will '
+      + 'move when the archive does.';
+    (h.querySelector('.resultnote') || lede).insertAdjacentElement('afterend', tail);
+    return true;
+  }
+
+  /* ---- 2. The home hero, cloned from a header that has now changed ------- */
+  function home(){
+    var hero = document.getElementById('homeHero');
+    var h    = document.getElementById('nextHead');
+    if(!hero || !h || hero.dataset.v36) return false;
+    if(!h.dataset.v36) return false;                 // wait until the header is done
+    var stats = h.querySelectorAll('.stat');
+    if(!stats.length) return false;
+    hero.dataset.v36 = '1';
+
+    var eyebrow = h.querySelector('.eyebrow');
+    var title   = h.querySelector('h2');
+    var lede    = h.querySelector('.lede');
+    var note    = h.querySelector('.resultnote');
+
+    hero.innerHTML =
+        '<div class="eyebrow">' + (eyebrow ? eyebrow.textContent : 'The last Palio') + '</div>'
+      + '<h2>' + (title ? title.textContent : 'Palio dell\'Assunta') + '</h2>'
+      + '<p class="lede">' + (lede ? lede.innerHTML : '') + '</p>'
+      + (note ? '<div class="resultnote">' + note.innerHTML + '</div>' : '')
+      + '<div class="jump" id="homeJump"></div>';
+
+    var jump = hero.querySelector('#homeJump');
+    stats.forEach(function(s){
+      var c = s.cloneNode(true);
+      c.classList.add('lnk');
+      if(!c.dataset.tab) c.dataset.tab = 'next';
+      jump.appendChild(c);
+    });
+    return true;
+  }
+
+  /* ---- 3. The field table: the winner, and the order at the ropes -------- */
+  function field(){
+    var t = document.querySelector('#nextField table');
+    if(!t || t.dataset.v36) return false;
+    var rows = t.tBodies[0] && t.tBodies[0].rows;
+    if(!rows || !rows.length) return false;
+    t.dataset.v36 = '1';
+
+    // A column for the starting order, inserted after Entry.
+    var hr = t.tHead.rows[0];
+    var th = document.createElement('th');
+    th.className = 'num';
+    th.textContent = 'At the ropes';
+    hr.insertBefore(th, hr.cells[2] || null);
+
+    [].forEach.call(rows, function(tr){
+      var name = (function(){
+        var c = tr.cells[0].cloneNode(true);
+        c.querySelectorAll('svg').forEach(function(s){ s.remove(); });
+        return (c.textContent || '').replace(/\s+/g,' ').trim();
+      })();
+      var pos = CANAPI[name];
+      var td = document.createElement('td');
+      td.className = 'num';
+      td.dataset.sort = (pos === 'rincorsa') ? 99 : (pos || 0);
+      td.textContent = pos === 'rincorsa' ? 'rincorsa' : (pos || '—');
+      tr.insertBefore(td, tr.cells[2] || null);
+
+      if(name === WINNER){
+        tr.classList.add('winner');
+        var n = tr.querySelector('.n');
+        if(n && !n.querySelector('.wonpill')){
+          n.insertAdjacentHTML('afterend', '<span class="wonpill">Won</span>');
+        }
+      }
+    });
+
+    // The colgroup from v27 sized five columns; there are six now.
+    var cg = t.querySelector('colgroup');
+    if(cg) cg.remove();
+    return true;
+  }
+
+  /* ---- 3b. The prose around it, which is all still in the future tense --- */
+  function tense(){
+    var host = document.getElementById('nextField');
+    if(!host || host.dataset.v36t) return false;
+    var card = host.closest('.card');
+    if(!card) return false;
+    host.dataset.v36t = '1';
+
+    var h2 = card.querySelector('h2');
+    if(h2 && /ten who run/.test(h2.textContent)) h2.textContent = 'The field — ten who ran';
+
+    var note = host.querySelector('.note');
+    if(note) note.innerHTML = note.innerHTML
+      .replace('while the jockeys are registered again on the new race morning, so a '
+             + 'late swap is still possible',
+               'and the jockeys were registered again on the Tuesday morning')
+      .replace('Pairings as registered at the', 'Pairings as they ran, registered at the');
+
+    // "Watch it live" is a listing for a race that has been run.
+    var watch = document.getElementById('watchCard');
+    if(watch){
+      var w = watch.querySelector('.watchwhen');
+      if(w) w.innerHTML = '<div>Run on <b>Tuesday 18 August</b> · Corteo Storico 16:50 · '
+                        + 'horses out of the Entrone <b>19:00</b> Siena</div>';
+      var wn = watch.querySelector('.note');
+      if(wn) wn.innerHTML = 'These are the broadcasters who carried it, and who will carry '
+                          + 'the Palio di Provenzano on 2 July 2027. Commentary is in '
+                          + 'Italian, and the national feeds sometimes geoblock outside '
+                          + 'Italy — the two Siena broadcasters are usually the reliable '
+                          + 'ones from abroad.';
+      var wh = watch.querySelector('h2');
+      if(wh) wh.textContent = 'Where it was shown';
+    }
+    return true;
+  }
+
+  /* ---- 4. The news layer ------------------------------------------------- */
+  // v32 refreshes the same NEWS object from its own retry loop, which can
+  // finish AFTER this block's first pass — and it did, pushing its
+  // postponement items back above the result. So this does not run once: it
+  // re-asserts until the top of the index is the result and stays that way.
+  // (The rule in the skill: settle on the value holding still, never on a flag
+  // saying some other patch has run.)
+  var settled = 0;
+  function news(){
+    if(typeof NEWS === 'undefined' || !NEWS.items || !NEWS.items.length) return false;
+    if(NEWS.items[0].url === FRESH[0].url) return ++settled > 8;
+    settled = 0;
+
+    NEWS.generated = '2026-08-18T23:40:00+02:00';
+    NEWS.race.stage = 'Nicchio won the Assunta on 18 August — Tittia on Anda e Bola';
+    NEWS.race.nextMilestone = 'The Palio di Provenzano';
+    NEWS.race.nextMilestoneWhen = '2 July 2027';
+    // Drop any copy of these already in the list, then put them back on top,
+    // so re-asserting can never duplicate them.
+    var mine = {};
+    FRESH.forEach(function(i){ mine[i.url] = 1; });
+    for(var k = NEWS.items.length - 1; k >= 0; k--){
+      if(mine[NEWS.items[k].url]) NEWS.items.splice(k, 1);
+    }
+    FRESH.slice().reverse().forEach(function(i){ NEWS.items.unshift(i); });
+
+    // Redraw the two places that render NEWS once rather than on change.
+    var card = document.getElementById('newsNext');
+    if(card){
+      var n = card.querySelector('.note');
+      if(n) n.innerHTML = NEWS.race.stage + '. Next: <strong>' + NEWS.race.nextMilestone
+                        + '</strong>, ' + NEWS.race.nextMilestoneWhen + '.';
+      var list = card.querySelector('.newscard');
+      if(list) list.innerHTML = NEWS.items.slice(0,6).map(function(x){
+        return '<div class="nitem"><div class="nmeta">'
+             + new Date(x.date + 'T12:00:00').toLocaleDateString('en-GB',
+                 {day:'numeric',month:'short',year:'numeric'})
+             + ' · ' + x.source + '<span class="ntag">' + x.tag + '</span></div>'
+             + '<div class="ntitle"><a href="' + x.url + '" target="_blank" rel="noopener">'
+             + x.title + '</a></div><div class="nsum">' + x.summary + '</div></div>';
+      }).join('');
+      var stamp = card.querySelector('.newsstamp');
+      if(stamp) stamp.textContent = 'News as of 18 August 2026, 23:40 Siena time — a '
+                                  + 'snapshot taken when this page was built, not a live feed.';
+    }
+    // The home page renders the top story once its source stops changing, and
+    // it had already settled before this block ran — so it was still leading on
+    // yesterday's postponement. Redraw it from the news we just unshifted.
+    var hbox = document.getElementById('homeNews');
+    if(hbox){
+      var d = function(iso){
+        return new Date(iso + 'T12:00:00')
+          .toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+      };
+      var top = NEWS.items[0], rest = NEWS.items.slice(1,4);
+      hbox.innerHTML =
+          '<h2>The latest</h2>'
+        + '<div class="nmeta">' + d(top.date) + ' · ' + top.source + '</div>'
+        + '<div class="ntitle"><a href="' + top.url + '" target="_blank" rel="noopener">'
+        +   top.title + '</a></div>'
+        + '<div class="nsum">' + top.summary + '</div>'
+        + (rest.length
+            ? '<div class="more">' + rest.map(function(n){
+                return '<div class="row"><span class="d">' + d(n.date) + '</span>'
+                     + '<a href="' + n.url + '" target="_blank" rel="noopener">'
+                     + n.title + '</a></div>';
+              }).join('') + '</div>'
+            : '')
+        + '<span class="allnews lnk" data-tab="next" data-scroll="newsNext">'
+        + 'All the news, and what happens next ›</span>';
+    }
+
+    // The race is run; do not leave the tab captions inferring it from a clock.
+    document.querySelectorAll('.fieldbar .when').forEach(function(el){
+      el.textContent = 'Ran in the Palio of 18 August 2026';
+    });
+    return false;                       // keep watching until it holds
+  }
+
+  /* ---- 5. The version line ---------------------------------------------- */
+  // v35 renders this and nudges it again at 2.5s, so hold the newer number
+  // until that has finished rather than racing it.
+  function version(){
+    var line = document.querySelector('.buildline');
+    if(!line) return false;
+    line.innerHTML = line.innerHTML
+        .replace(/Version <b>\d+<\/b>/, 'Version <b>36</b>')
+        .replace(/built [^<·]+/, 'built 18 August 2026 ');
+    return false;                                  // deliberately never settles
+  }
+  var vtries = 0;
+  var vt = setInterval(function(){ version(); if(++vtries > 20) clearInterval(vt); }, 400);
+
+  // Field bars appear only after their tab's button is pressed.
+  if(window.MutationObserver){
+    new MutationObserver(function(){
+      document.querySelectorAll('.fieldbar .when').forEach(function(el){
+        if(el.textContent.indexOf('Ran in') !== 0)
+          el.textContent = 'Ran in the Palio of 18 August 2026';
+      });
+    }).observe(document.body, {childList:true, subtree:true});
+  }
+
+  var STEPS = [head, home, field, tense, news];
+  var done  = STEPS.map(function(){ return false; });
+  function run(){
+    var all = true;
+    STEPS.forEach(function(fn, i){
+      if(done[i]) return;
+      try { done[i] = !!fn(); } catch(e){ done[i] = true; }
+      if(!done[i]) all = false;
+    });
+    return all;
+  }
+  if(!run()){
+    var n = 0, iv = setInterval(function(){ if(run() || ++n > 120) clearInterval(iv); }, 150);
+  }
+})();
+</script>
+
 <script>
 /* ---------------------------------------------------------------------------
    Register the service worker. This is what makes the dashboard installable
